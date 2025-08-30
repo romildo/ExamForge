@@ -1,143 +1,101 @@
-# ExamForge Question Specification v2.0
+# ExamForge Question Template Specification (v2.1)
 
-## 1\. Introduction
+`ExamForge` uses a YAML-based format to define question templates. A single `.yml` file can contain a list of one or more question template objects.
 
-This document outlines the `v2.0` specification for creating question template files for the ExamForge system. ExamForge is a tool designed to generate multiple unique variations of exam questions from a single declarative template file.
+## Top-Level Structure
 
-The core philosophy is to separate a question's content, data, and logic into a clean, human-readable YAML format. This allows educators to create rich, algorithmic questions without embedding presentation logic inside a programming language.
-
-Each question is defined in its own `.yml` file.
-
-## 2\. Example
-
-Here is a complete example of a parameterized question file. This demonstrates most of the features of the specification.
+The root of a `.yml` file must be a **list** of question template objects.
 
 ```yaml
-# (Required) Unique identifier for the question.
-id: "cap16-lambdaAninhada"
-
-# (Required) Question title for cataloging.
-title: "Lambda Aninhada"
-
-# (Required) The markup language used in the templates.
-# Supported values: "latex", "markdown".
-format: "latex"
-
-# (Optional) Subject/chapter for filtering.
-subject: "16: Expressão Lambda"
-
-# (Optional) List of tags for filtering.
-tags:
-  - "lambda"
-  - "haskell"
-  - "função anônima"
-
-# (Required) Defines the answer correction criteria.
-# "any": Only one of the correct answers needs to be marked.
-# "all": All correct answers must be marked.
-selection_type: "any"
-
-# (Optional) List of parameter sets to generate question variations.
-parameters:
-  - { x: 5,  y: 3  }
-  - { x: 6,  y: 2  }
-  - { x: 10, y: 5 }
-
-# (Optional) Code block for calculations.
-computations: |
-  correct = x * 2 + y
-  distractor1 = "Erro de tipo"
-  distractor2 = x * y + 2
-  distractor3 = correct + 5
-
-# (Required) The question's statement template.
-question: |
-  Analise a expressão Haskell a seguir. Qual será o resultado de sua avaliação?
-  
-  \begin{minted}{haskell}
-  let f = (\x -> \y -> x * 2 + y) {{x}} in f {{y}}
-  \end{minted}
-
-# (Required) List of answer choice templates.
-answers:
-  - correct:   "\\mintinline{haskell}{{{show correct}}}"
-  - incorrect: "{{distractor1}}"
-  - incorrect: "\\mintinline{haskell}{{{show distractor2}}}"
-  - incorrect: "\\mintinline{haskell}{{{show distributor3}}}"
+- id: "question-001"
+  # ... fields for the first question
+- id: "question-002"
+  # ... fields for the second question
 ```
 
-## 3\. Top-Level Keys
+-----
 
-This section details every valid key at the top level of the question YAML file.
+## Question Template Object
 
-### `id`
+Each object in the list represents a single question template and is defined by a set of key-value pairs.
 
-  - **Type:** `String`
-  - **Required:** Yes
-  - **Description:** A unique identifier for the question across the entire question bank. It is recommended to use a consistent naming scheme, such as `<subject>-<descriptionInCamelCase>`.
+### Required Keys
 
-### `title`
+  * `id` (String): A unique identifier for the question (e.g., `"logic-001"`, `"chapter5-recursion"`). It's used to generate the Haskell module name.
+  * `title` (String): A human-readable title for the question.
+  * `format` (String): The primary output format for the question's content (e.g., `"latex"`, `"markdown"`).
+  * `selection_type` (String): Defines how correct answers are evaluated.
+      * `"any"`: At least one of the correct answers must be chosen (for multiple-choice, single-answer questions).
+      * `"all"`: All of the correct answers (and no incorrect ones) must be chosen.
+  * `question` (String): The template string for the question body. This can be a multi-line string.
+  * `answers` (List of Objects): A list defining the answer choices. Each object must have a single key:
+      * `correct`: The value is the template string for a correct answer.
+      * `incorrect`: The value is the template string for an incorrect answer.
 
-  - **Type:** `String`
-  - **Required:** Yes
-  - **Description:** A human-readable title for the question. Used for display and cataloging purposes.
+### Optional Keys
 
-### `format`
+  * `subject` (String): The subject or chapter the question relates to.
+  * `tags` (List of Strings): A list of keywords for filtering and organization. If omitted, it defaults to an empty list `[]`.
+  * `parameters` (List of Objects): A list of parameter sets to generate question variants. Each object is a map of variable names to their values (String, Number, or Bool). If omitted, it defaults to an empty list `[]`, producing one static variant.
+  * `computations` (String): A block of Haskell code containing `let` bindings. The variables defined here, along with those from `parameters`, are available for use within the `question` and `answer` templates.
+  * `delimiters` (Object): An object specifying the start and end delimiters for expressions within templates. If omitted, defaults to `{{` and `}}`.
+      * `start`: The starting delimiter string.
+      * `end`: The ending delimiter string.
 
-  - **Type:** `String`
-  - **Required:** Yes
-  - **Description:** Specifies the markup language used in the `question` and `answers` templates. The generator will use this information to produce the correct output file type.
-  - **Valid Values:** `latex`, `markdown`.
+-----
 
-### `subject`
+## Full Example
 
-  - **Type:** `String`
-  - **Required:** No
-  - **Description:** The subject, chapter, or topic the question belongs to. This can be used by the exam orchestrator to filter questions.
+This example demonstrates all features, including multiple questions in one file, custom delimiters, parameters, and computations.
 
-### `tags`
+```yaml
+# File: chapter16.yml
+-
+  id: "cap16-lambdaAninhada"
+  title: "Lambda Aninhada"
+  format: "latex"
+  subject: "16: Expressão Lambda"
+  tags: ["lambda", "haskell", "função anônima"]
+  selection_type: "any"
+  delimiters: { start: "|", end: "|" }
 
-  - **Type:** `List of Strings`
-  - **Required:** No
-  - **Description:** A list of keywords or tags associated with the question. This allows for more granular filtering when assembling an exam.
+  parameters:
+    - { x: 5,  y: 3 }
+    - { x: 6,  y: 2 }
+    - { y: 5,  x: 10 } # Order does not matter
 
-### `selection_type`
+  computations: |
+    correct = x * 2 + y
+    distractor1 = "Erro de tipo"
+    distractor2 = x * y + 2
+    distractor3 = correct + 5
 
-  - **Type:** `String`
-  - **Required:** Yes
-  - **Description:** Defines the scoring logic for questions with multiple correct answers.
-  - **Valid Values:**
-      - `any`: The student needs to select only one of the available correct options.
-      - `all`: The student must select all of the correct options.
+  question: |
+    Analise a expressão Haskell a seguir. Qual será o resultado de sua avaliação?
+    
+    \begin{minted}{haskell}
+    let f = (\x -> \y -> x * 2 + y) |show x| in f |show y|
+    \end{minted}
 
-### `parameters`
+  answers:
+    - correct:   "\\mintinline{haskell}{|show correct|}"
+    - incorrect: "|distractor1|"
+    - incorrect: "\\mintinline{haskell}{|show distractor2|}"
+    - incorrect: "\\mintinline{haskell}{|show distractor3|}"
 
-  - **Type:** `List of Maps`
-  - **Required:** No
-  - **Description:** A list where each item is a map (dictionary) of key-value pairs. Each item in the list will be used to generate one unique variation of the question. The keys defined here become available as variables inside the `computations` block and the templates. If this key is omitted, the question will have only one static variation.
+-
+  id: "static-test-001"
+  title: "Simple Static Test"
+  format: "markdown"
+  selection_type: "all"
+  tags: ["testing"]
 
-### `computations`
+  question: "Which of the following are prime numbers?"
 
-  - **Type:** `String` (Multiline block)
-  - **Required:** No
-  - **Description:** A block of code in the target programming language (e.g., Haskell, Python). This code is executed for each variation. It has access to the variables defined in the `parameters` for the current variation. Any new variables defined in this block become available for use in the `question` and `answers` templates.
+  answers:
+    - correct: "2"
+    - incorrect: "4"
+    - correct: "7"
+    - incorrect: "9"
 
-### `question`
-
-  - **Type:** `String` (Multiline block)
-  - **Required:** Yes
-  - **Description:** The template for the question's statement. It can contain placeholders for variable substitution.
-
-### `answers`
-
-  - **Type:** `List of Maps`
-  - **Required:** Yes
-  - **Description:** A list defining the answer choices. Each item in the list is a map with a single key, which must be either `correct` or `incorrect`. The value is the string template for that answer choice. The order in this list is preserved before the final shuffling by the exam orchestrator.
-
-## 4\. Templating System
-
-The `question` and `answers` fields are templates that are processed for each variation.
-
-  - **Variable Substitution:** Variables are injected into the templates using double curly braces: `{{variable_name}}`.
-  - **Scope:** The template engine has access to all variables from the `parameters` block for the current variation, as well as any variables defined in the `computations` block.
-  - **Expressions:** For languages like Haskell, you can embed simple expressions that return a string, such as `{{show correct}}`. The `computations` block is the preferred place for complex logic.
+```
