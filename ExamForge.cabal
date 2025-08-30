@@ -1,0 +1,107 @@
+cabal-version:      2.2
+name:               ExamForge
+version:            0.1.0.0
+
+-- A short, one-line synopsis of the package.
+synopsis:           A template-based, algorithmic exam question generator.
+
+-- A longer description of the package.
+-- description:
+
+-- The license under which the package is released.
+license:            MIT
+license-file:       LICENSE
+
+-- The package author(s).
+author:             José Romildo
+maintainer:         José Romildo
+
+-- A copyright notice.
+-- copyright:
+category:           Education, Text Processing
+build-type:         Simple
+extra-source-files: README.md
+
+-- A public GitHub repository for the project.
+source-repository head
+  type:     git
+  location: https://github.com/romildo/ExamForge
+
+--------------------------------------------------------------------------------
+-- Library Stanza
+-- This section defines the core library of our project, where our main
+-- logic will reside. The executable will depend on this library.
+--------------------------------------------------------------------------------
+library
+  -- Modules exported by the library.
+  exposed-modules:
+    ExamForge.Type,
+    ExamForge.Parser,
+    ExamForge.Exam,
+    ExamForge.Generator,
+    ExamForge.Formatter.Latex
+
+  -- Modules included in this library but not exported.
+  -- other-modules:
+
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:
+
+  -- The packages this library depends on.
+  build-depends:
+    base >=4.12 && <5,
+    aeson,
+    yaml,
+    text,
+    containers
+
+  -- Directories containing source files.
+  hs-source-dirs:   src
+
+  -- Base language which the package is written in.
+  default-language: Haskell2010
+
+--------------------------------------------------------------------------------
+-- Executable Stanza
+-- This defines the main executable program that users will run.
+--------------------------------------------------------------------------------
+executable examforge
+  -- The name of the main module.
+  main-is:          Main.hs
+
+  -- The packages this executable depends on.
+  build-depends:
+    base >=4.12 && <5,
+    ExamForge,
+    yaml,
+    directory,
+    filepath
+
+  -- Directories containing source files.
+  hs-source-dirs:   app
+
+  -- Base language which the package is written in.
+  default-language: Haskell2010
+
+--------------------------------------------------------------------------------
+-- Executable Stanza: Exam Assembler
+-- This program USES the generated modules to build final exams.
+--------------------------------------------------------------------------------
+executable exam-assembler
+  main-is:          Assembler.hs
+  other-modules:    Generated.Questions
+
+  build-depends:
+    base >=4.12 && <5,
+    ExamForge,
+    random,
+    regex-tdfa,
+    directory,
+    filepath,
+    pretty-show
+
+  hs-source-dirs:
+    app,
+    generated
+
+  default-language: Haskell2010
