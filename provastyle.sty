@@ -1,0 +1,242 @@
+% --- Arquivo de Estilo para Provas de Programação Funcional ---
+% provastyle.sty
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{provastyle}[2025/08/28 Estilo para Provas BCC222]
+
+% --- Pacotes e Configurações ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage[hmargin=17mm,vmargin=15mm]{geometry}
+\usepackage{indentfirst}
+\usepackage{pslatex}
+\usepackage[scaled=0.82]{DejaVuSansMono}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{multicol}
+\usepackage{minted}
+\usepackage{arydshln} % <--- PACOTE ADICIONADO PARA LINHAS PONTILHADAS
+\usepackage{xstring} % Necessário para a lógica do novo gabarito
+\usepackage{pgffor}    % loops \foreach (usaremos fora do tabular)
+\usepackage{atveryend}
+\usepackage[savepos,user]{zref}
+\usepackage{amssymb}
+\usepackage{tikz} % <--- para adicionar marcas de referência na folha de respostas
+\usepackage{eso-pic} % <---
+
+% --- Configurações de Pacotes ---
+
+% Prepara um arquivo para escrever as dimensões das zonas
+\newwrite\zonasfile
+\immediate\openout\zonasfile=\jobname.zonas
+
+% --- Comando para criar uma zona a partir das dimensões de um texto (Versão Compatível) ---
+\newsavebox{\TextZoneBox}
+\newcommand{\TextZone}[2]{%
+  \sbox{\TextZoneBox}{#2}% Mede o texto
+  \zsavepos{\detokenize{#1}}% Salva a posição X,Y no .aux
+  % Escreve as dimensões W,H no arquivo .zonas
+  \immediate\write\zonasfile{zoneprop{\detokenize{#1}}{width}{\the\wd\TextZoneBox}}%
+  \immediate\write\zonasfile{zoneprop{\detokenize{#1}}{height}{\the\ht\TextZoneBox}}%
+  \usebox{\TextZoneBox}% Desenha o texto
+}
+
+
+\setlist{nosep}
+
+\setminted{
+  bgcolor=lightgray!20,
+  frame=lines,
+  framesep=2mm, 
+  fontsize=\small,
+  autogobble,
+  breaklines
+}
+
+\newminted{haskell}{}
+\newmintinline{haskell}{}
+
+% Custom command for creating blank spaces
+\newcommand{\fillin}[1][2cm]{\rule{#1}{0.4pt}}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+\setlength{\columnsep}{1cm}
+
+\renewcommand{\theenumi}{\alph{enumi}}
+
+% --- Comandos Customizados ---
+\newcommand{\questionTitle}[2]{\subsubsection*{Questão #1 \hfill \small{(Cap. #2)}}}
+
+% --- NOVOS COMANDOS PARA A GRADE DE RESPOSTAS ---
+
+% Cria uma caixa vazia para o aluno preencher.
+% \rule{0pt}{2.5ex} cria um "suporte" invisível para dar altura à linha.
+\newcommand{\respBox}{\large\raisebox{-0.4ex}{\framebox(10,10){}}}
+
+
+% --- Comando para marcar a posição DAS ZONAS DE RESPOSTA (VERSÃO CORRIGIDA) ---
+% Este comando agora mede o quadrado e salva suas dimensões, assim como o \TextZone.
+
+% Primeiro, definimos o conteúdo do nosso quadrado, baseado na sua macro original.
+\newcommand{\respBoxContent}{\large\raisebox{-0.4ex}{\framebox(10,10){}}}
+
+% Agora, o \ZoneBox usa esse conteúdo para medir, salvar posições/dimensões e desenhar.
+\newcommand{\ZoneBox}[1]{%
+  \sbox{\TextZoneBox}{\respBoxContent}% Coloca o quadrado na caixa de medição
+  \zsavepos{\detokenize{#1}}% Salva a posição (X,Y) no arquivo .aux
+  % Escreve as dimensões (W,H) no arquivo .zonas
+  \immediate\write\zonasfile{zoneprop{\detokenize{#1}}{width}{\the\wd\TextZoneBox}}%
+  \immediate\write\zonasfile{zoneprop{\detokenize{#1}}{height}{\the\ht\TextZoneBox}}%
+  \usebox{\TextZoneBox}% Desenha o quadrado na página
+}
+
+% --- Comando para marcar zonas retangulares como Matrícula e Nome ---
+% #1 = etiqueta, #2 = largura, #3 = altura
+\newcommand{\InfoZone}[3]{%
+  \zsavepos{#1}%
+  \parbox[t][#3][c]{#2}{}% Usa uma parbox invisível para definir a área
+}
+
+% --- MACRO PARA O CABEÇALHO DA PROVA ---
+\newcommand{\cabeçalho}[1]{
+    \begin{center}
+        \Large\bfseries BCC222 -- PROGRAMAÇÃO FUNCIONAL \\
+        \large Primeira Prova - Tipo #1 \\
+        \normalsize Prof. José Romildo Malaquias \hfill \today
+    \end{center}
+    % \vspace{0.5cm}
+    % \noindent\textbf{Nome:} \hrulefill \hspace{2em} \textbf{Matrícula:} \hrulefill
+    \vspace{0.5cm}
+    \begin{center}
+        \textbf{Instruções}
+    \end{center}
+    \begin{itemize}[noitemsep,topsep=0pt]
+        \item A prova é individual e com consulta ao material escrito.
+        \item Não é permitido o uso de dispositivos eletrônicos.
+        \item A interpretação das questões faz parte da avaliação.
+        \item Marque suas respostas na folha de respostas ao final do caderno.
+        \item Apenas a folha de respostas será corrigida.
+    \end{itemize}
+    \vspace{0.5cm}
+    \hrule
+    \vspace{0.5cm}
+}
+
+
+% --- FOLHA DINÂMICA DE RESPOSTAS ---
+  
+\ExplSyntaxOn
+\newcommand{\PrintRespBlock}[2]{% #1=início, #2=fim
+  \begin{tabular}{rccccc}
+    & \textbf{A} & \textbf{B} & \textbf{C} & \textbf{D} & \textbf{E} \\
+    % \cline{2-6}
+    \int_step_inline:nnn {#1} {#2} {%
+      % ##1 & \respBox & \respBox & \respBox & \respBox & \respBox \\%
+      ##1 & \ZoneBox{q##1A} & \ZoneBox{q##1B} & \ZoneBox{q##1C} & \ZoneBox{q##1D} & \ZoneBox{q##1E} \\%
+      % \ifnum ##1 < #2 \hline\fi
+    }%
+  \end{tabular}%
+}
+\ExplSyntaxOff
+
+% Uso: \folhadeRespostasDinamica{<Tipo da Prova>}{<Total de Questões>}{<Questões por Coluna>}
+% Ex.: \folhadeRespostasDinamica{B-01}{40}{20}
+\newcommand{\folhadeRespostasDinamica}[3]{%
+  \newpage
+  %
+  % Em seu arquivo .tex principal, depois de \begin{document}
+  \AddToShipoutPictureBG*{%
+    \begin{tikzpicture}[remember picture, overlay]
+      % Marcador Top-Left (TL)
+      \node[fill=black, minimum size=5mm] at (current page.north west) [anchor=north west, xshift=1cm, yshift=-1cm] (marker-tl) {};
+      \TextZone{marker_tl}{\phantom{x}}
+
+      % Marcador Top-Right (TR)
+      \node[fill=black, minimum size=5mm] at (current page.north east) [anchor=north east, xshift=-1cm, yshift=-1cm] (marker-tr) {};
+      \TextZone{marker_tr}{\phantom{x}}
+
+      % Marcador Bottom-Left (BL)
+      \node[fill=black, minimum size=5mm] at (current page.south west) [anchor=south west, xshift=1cm, yshift=1cm] (marker-bl) {};
+      \TextZone{marker_bl}{\phantom{x}}
+    \end{tikzpicture}%
+  }
+  %
+  \thispagestyle{empty}
+  \begin{center}
+    \large\bfseries BCC222 -- Programação Funcional -- 2025/1 \\[1ex]
+    \Large Folha de Respostas \\[1ex]
+    \large Prova~\TextZone{tipo_prova}{#1} \\[5ex]
+  \end{center}
+
+  \noindent\textbf{Nome:} \hfil \hfil \textbf{Matrícula:} \hfil \\
+  \hrule
+  % \vspace{0.5cm}
+
+  \begin{center}
+    \begin{minipage}{0.8\textwidth}
+      \textbf{Instruções}:
+      \begin{itemize}[noitemsep,topsep=0.5ex, partopsep=0pt, leftmargin=*]
+        \item Use caneta preta ou azul e preencha por completo o quadrado da alternativa escolhida.
+        \item Marque apenas UMA alternativa por questão. Rasuras anularão a questão.
+      \end{itemize}
+    \end{minipage}
+  \end{center}
+  \vspace{0.5cm}
+
+  % número de colunas (ceil)
+  \pgfmathtruncatemacro{\numcols}{int((#2 + #3 - 1)/#3)}
+  \renewcommand{\arraystretch}{1.4}
+
+  \begin{multicols}{\numcols}
+    \centering
+    % Itera colunas com \foreach (fora do tabular é seguro)
+    \foreach \col in {1,...,\numcols}{%
+      \pgfmathtruncatemacro{\startq}{(\col - 1) * #3 + 1}%
+      \pgfmathtruncatemacro{\endq}{min(\col * #3, #2)}%
+      \PrintRespBlock{\startq}{\endq}%
+      \par\medskip
+    }%
+  \end{multicols}
+
+  \vfill
+  \huge
+  \rule{0.6em}{0.5em}
+  \TextZone{matricula}{\phantom{\texttt{\rule{0em}{3em}99.9.9999}}}
+  \phantom{--}
+  \TextZone{nome}{\phantom{\texttt{\rule{0em}{3em}FULANO BELTRANO CICRANO DE TAL E TAL}}}
+}
+
+% --- MACRO PARA O GABARITO ---
+% Uso: \gabarito{<Tipo da Prova>}{<R1,R2,R3,...,R40>}
+
+\makeatletter
+\newcommand{\gabarito}[2]{
+    \newpage
+    \begin{center}
+        \Large\bfseries GABARITO - Prova Tipo #1
+    \end{center}
+    \hrule
+    \vspace{1cm}
+    \large
+    \renewcommand{\arraystretch}{1.2}
+    \newcounter{questionnum}
+    \setcounter{questionnum}{0}
+    
+    \begin{multicols}{4}
+    \noindent
+    % Itera sobre a lista de respostas separadas por vírgula
+    \@for\answer:=#2\do{%
+        \stepcounter{questionnum}%
+        \if\relax\detokenize{\answer}\relax%
+            % Não faz nada se a resposta for vazia
+        \else%
+            \textbf{\thequestionnum.} \answer \\%
+        \fi%
+    }%
+    \end{multicols}%
+}
+\makeatother
+
+\endinput
