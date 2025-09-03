@@ -1,0 +1,72 @@
+- id: "cap20-derivacao-com-contexto"
+  title: "Classes de Tipos - Derivação com Contexto"
+  subject: "20: Classes de Tipos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-20", "typeclass", "deriving", "contexto"]
+  question: |
+    A cláusula \haskellinline{deriving} em Haskell pode gerar instâncias automaticamente. No entanto, para um tipo de dado polimórfico, o compilador adiciona um contexto à instância derivada. Considere o tipo \haskellinline{Par a}.
+    \begin{minted}{haskell}
+    data Par a = Par a a deriving (Eq, Ord)
+    \end{minted}
+    Qual é a condição necessária para que a expressão \haskellinline{(Par 1 2) < (Par 2 1)} seja válida?
+  answers:
+    - correct: |
+        O tipo dos elementos \haskellinline{a} (neste caso, \haskellinline{Int} ou outro tipo numérico) deve ser uma instância de \haskellinline{Ord}.
+    - incorrect: |
+        A derivação automática não funciona para tipos polimórficos como \haskellinline{Par a}.
+    - incorrect: |
+        É necessário implementar manualmente a instância de \haskellinline{Eq} antes de poder derivar \haskellinline{Ord}.
+    - incorrect: |
+        A expressão sempre será válida, independentemente do tipo \haskellinline{a}.
+    - incorrect: |
+        O tipo \haskellinline{Par a} precisa ser uma instância da classe \haskellinline{Num}.
+
+- id: "cap20-definicao-minima-metodo-padrao"
+  title: "Classes de Tipos - Definição Mínima e Métodos Padrão"
+  subject: "20: Classes de Tipos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-20", "typeclass", "instance", "default-methods"]
+  question: |
+    A classe \haskellinline{Eq} possui uma definição padrão para \haskellinline{(/=)} em termos de \haskellinline{(==)}, e vice-versa. Considere a instância manual abaixo, que define apenas o operador \haskellinline{(/=)}.
+    \begin{minted}{haskell}
+    data MeuTipo = A | B deriving (Show)
+
+    instance Eq MeuTipo where
+      A /= A = False
+      B /= B = False
+      _ /= _ = True
+    \end{minted}
+    Qual será o resultado da avaliação da expressão \haskellinline{A == B}?
+  answers:
+    - correct: |
+        \haskellinline{False} (porque a implementação padrão de \haskellinline{(==)} será \haskellinline{not (A /= B)}, que é \haskellinline{not True})
+    - incorrect: |
+        \haskellinline{True} (porque o compilador assume que se não são diferentes, são iguais)
+    - incorrect: |
+        Ocorre um erro de compilação porque o método \haskellinline{(==)} não foi definido.
+    - incorrect: |
+        Ocorre um erro em tempo de execução por falta da implementação de \haskellinline{(==)}.
+    - incorrect: |
+        O código não compila pois a definição mínima para \haskellinline{Eq} exige a implementação de \haskellinline{(==)}.
+
+- id: "cap20-heranca-multipla"
+  title: "Classes de Tipos - Herança e Restrições Múltiplas"
+  subject: "20: Classes de Tipos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-20", "typeclass", "herança", "superclass"]
+  question: |
+    A hierarquia de classes de tipo em Haskell é uma forma de herança. A classe \haskellinline{Integral} é uma subclasse de \haskellinline{Real} e \haskellinline{Enum}. O que isso implica para uma função com a assinatura \haskellinline{processa :: Integral a => a -> String}?
+  answers:
+    - correct: |
+        A função \haskellinline{processa} pode receber um argumento de qualquer tipo \haskellinline{a} que seja, simultaneamente, uma instância de \haskellinline{Num}, \haskellinline{Ord}, \haskellinline{Real} e \haskellinline{Enum}.
+    - incorrect: |
+        A função só pode receber argumentos do tipo concreto \haskellinline{Integral}, não funcionando para \haskellinline{Int} ou \haskellinline{Integer}.
+    - incorrect: |
+        A função pode receber qualquer tipo numérico, incluindo \haskellinline{Double} e \haskellinline{Float}.
+    - incorrect: |
+        A função pode usar operações da classe \haskellinline{Fractional}, como a divisão \haskellinline{/}.
+    - incorrect: |
+        A herança em classes de tipo significa que \haskellinline{Integral} pode ser usado no lugar de \haskellinline{Real} em qualquer situação.

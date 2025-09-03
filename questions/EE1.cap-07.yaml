@@ -1,0 +1,74 @@
+- id: "cap07-deducao-tipo-complexo"
+  title: "Polimorfismo - Dedução de Tipo Complexo"
+  subject: "7: Polimorfismo Paramétrico"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-07", "polimorfismo", "inferência-de-tipos", "tipos"]
+  question: |
+    Considere a seguinte função \haskellinline{f} que combina várias funções polimórficas. Qual é a assinatura de tipo mais geral para \haskellinline{f}?
+    \begin{minted}{haskell}
+    f xs ys = fst (head (zip xs ys))
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{f :: [a] -> [b] -> a}
+    - incorrect: |
+        \mintinline{haskell}{f :: [a] -> [b] -> b}
+    - incorrect: |
+        \mintinline{haskell}{f :: [a] -> [a] -> a}
+    - incorrect: |
+        \mintinline{haskell}{f :: [(a,b)] -> a}
+    - incorrect: |
+        A função não compila devido a um erro de tipo.
+
+- id: "cap07-polimorfismo-impossivel"
+  title: "Polimorfismo - A Função Impossível"
+  subject: "7: Polimorfismo Paramétrico"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-07", "polimorfismo", "teoremas-de-graça"]
+  question: |
+    O polimorfismo paramétrico impõe fortes restrições sobre o que uma função pode fazer. Uma função de tipo \haskellinline{[a] -> a}, por exemplo, não pode criar um novo valor do tipo \haskellinline{a} do nada; ela é obrigada a retornar um elemento que já existia na lista.
+
+    Dadas as assinaturas de tipo abaixo, qual delas descreve uma função que é \textbf{impossível} de ser implementada em Haskell de forma puramente polimórfica (sem usar restrições de classe de tipo como \haskellinline{Num a} ou \haskellinline{Show a})?
+  answers:
+    - correct: |
+        \mintinline{haskell}{criarValor :: a}
+
+        (Não há como saber qual valor concreto do tipo \haskellinline{a} criar para todos os possíveis tipos.)
+    - incorrect: |
+        \mintinline{haskell}{identidade :: a -> a}
+
+        (Simplesmente retornando o argumento recebido.)
+    - incorrect: |
+        \mintinline{haskell}{primeiro :: [a] -> a}
+
+        (Usando a função \haskellinline{head}.)
+    - incorrect: |
+        \mintinline{haskell}{duplicar :: a -> (a, a)}
+
+        (Retornando uma tupla com o argumento duas vezes, como \haskellinline{(x, x)}.)
+    - incorrect: |
+        \mintinline{haskell}{ciclo3 :: a -> b -> c -> a}
+
+        (Simplesmente retornando o primeiro argumento e ignorando os outros.)
+
+- id: "cap08-instanciacao-hof"
+  title: "Polimorfismo - Instanciação em Funções de Ordem Superior"
+  subject: "7: Polimorfismo Paramétrico"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-07", "polimorfismo", "hof", "tipos", "map"]
+  question: |
+    A função \haskellinline{map} tem o tipo \haskellinline{(a -> b) -> [a] -> [b]}. Na expressão \haskellinline{map show [1, 2, 3]}, como as variáveis de tipo \haskellinline{a} e \haskellinline{b} são instanciadas pelo compilador?
+  answers:
+    - correct: |
+        \haskellinline{a} é instanciada para um tipo numérico (como \haskellinline{Int} ou \haskellinline{Integer}), e \haskellinline{b} é instanciada para \haskellinline{String}.
+    - incorrect: |
+        \haskellinline{a} é instanciada para \haskellinline{String}, e \haskellinline{b} é instanciada para \haskellinline{Int}.
+    - incorrect: |
+        Tanto \haskellinline{a} quanto \haskellinline{b} são instanciadas para \haskellinline{Int}.
+    - incorrect: |
+        A expressão causa um erro de tipo, pois \haskellinline{show} não pode ser usada com \haskellinline{map}.
+    - incorrect: |
+        \haskellinline{a} é instanciada para \haskellinline{[Int]}, e \haskellinline{b} é instanciada para \haskellinline{[String]}.

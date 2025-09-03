@@ -1,0 +1,12 @@
+- id: "test-001"
+  title: "Simple Test"
+  format: "markdown"
+  selection_type: "any"
+  question: "What is 2 + 2?"
+  answers:
+    - correct: |
+        4
+    - incorrect: |
+        3
+    - incorrect: |
+        5

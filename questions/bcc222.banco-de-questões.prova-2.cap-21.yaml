@@ -1,0 +1,210 @@
+- id: "contextoFunctorDefinicao"
+  title: "Contexto - Definição de Functor"
+  subject: "21: Valores em um Contexto"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-21", "contexto", "functor", "fmap"]
+  question: |
+    Qual é a principal finalidade da classe de tipos \mintinline{haskell}{Functor} e sua função \mintinline{haskell}{fmap}?
+  answers:
+    - correct: |
+        Aplicar uma função pura a um valor que está "embrulhado" em um contexto.
+    - incorrect: |
+        Executar ações de I/O em sequência.
+    - incorrect: |
+        Comparar dois valores dentro de contextos diferentes.
+    - incorrect: |
+        Reduzir uma estrutura de dados a um único valor.
+    - incorrect: |
+        Criar um valor dentro de um contexto a partir de um valor puro.
+
+- id: "contextoFmapAninhado"
+  title: "Contexto - fmap Aninhado"
+  subject: "21: Valores em um Contexto"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-21", "contexto", "functor", "fmap", "maybe"]
+  delimiters: { start: "|", end: "|" }
+  parameters:
+    - { val: 5,  f1Str: "(+10)", f2Str: "(*2)" }
+    - { val: 10, f1Str: "(*3)",  f2Str: "(+1)" }
+  computations: |
+    f1 = read f1Str :: Int -> Int
+    f2 = read f2Str :: Int -> Int
+    correct = fmap f1 (fmap f2 (Just val))
+    distractor1 = fmap f1 (Just val)
+  question: |
+    Qual é o resultado da avaliação da seguinte expressão com \mintinline{haskell}{fmap}?
+    \begin{minted}{haskell}
+    fmap |f1Str| (fmap |f2Str| (Just |show val|))
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{|show correct|}
+    - incorrect: |
+        \mintinline{haskell}{|show distractor1|}
+    - incorrect: |
+        \mintinline{haskell}{|show (case correct of Just x -> x)|}
+    - incorrect: |
+        \mintinline{haskell}{Nothing}
+    - incorrect: |
+        Um erro de tipo.
+
+- id: "contextoApplicativeDefinicao"
+  title: "Contexto - Definição de Applicative"
+  subject: "21: Valores em um Contexto"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-21", "contexto", "applicative"]
+  question: |
+    A classe de tipos \mintinline{haskell}{Applicative} introduz o operador \mintinline{haskell}{<*>} (apply). Qual é a sua principal utilidade?
+  answers:
+    - correct: |
+        Permitir a aplicação de uma função a um argumento, quando tanto a função quanto o argumento estão "embrulhados" em um contexto.
+    - incorrect: |
+        Descartar o resultado de uma ação computacional.
+    - incorrect: |
+        Mapear uma função sobre uma estrutura, preservando-a.
+    - incorrect: |
+        Sequenciar duas ações monádicas com dependência.
+    - incorrect: |
+        Converter um valor \mintinline{haskell}{a} para um valor \mintinline{haskell}{f a}.
+
+- id: "contextoApplicativeNothing"
+  title: "Contexto - Applicative com Nothing"
+  subject: "21: Valores em um Contexto"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-21", "contexto", "applicative", "maybe"]
+  question: |
+    Qual o resultado da seguinte expressão usando \mintinline{haskell}{Applicative}? A função \mintinline{haskell}{(,,)} é o construtor de triplas.
+    \begin{minted}{haskell}
+    (,,) <$> Just "a" <*> Just 1 <*> Nothing
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{Nothing}
+    - incorrect: |
+        \mintinline{haskell}{Just ("a", 1, Nothing)}
+    - incorrect: |
+        Um erro de tipo.
+    - incorrect: |
+        \mintinline{haskell}{Just ("a", 1)}
+    - incorrect: |
+        \mintinline{haskell}{("a", 1, Nothing)}
+
+- id: "contextoMonadVsFunctor"
+  title: "Contexto - Monad vs Functor"
+  subject: "21: Valores em um Contexto"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-21", "contexto", "monad", "functor", "bind"]
+  question: |
+    Como o operador \mintinline{haskell}{>>=} (bind) da classe \mintinline{haskell}{Monad} difere fundamentalmente de \mintinline{haskell}{fmap}?
+  answers:
+    - correct: |
+        \mintinline{haskell}{>>=} permite que a função aplicada retorne um novo valor no contexto, possibilitando o encadeamento.
+    - incorrect: |
+        \mintinline{haskell}{fmap} é para listas, \mintinline{haskell}{>>=} é para \mintinline{haskell}{Maybe}.
+    - incorrect: |
+        \mintinline{haskell}{fmap} pode falhar com \mintinline{haskell}{Nothing}, \mintinline{haskell}{>>=} não.
+    - incorrect: |
+        Não há diferença, \mintinline{haskell}{>>=} é um sinônimo para \mintinline{haskell}{flip fmap}.
+    - incorrect: |
+        \mintinline{haskell}{>>=} é mais eficiente que \mintinline{haskell}{fmap}.
+
+- id: "contextoMonadChain"
+  title: "Contexto - Encadeamento Monádico"
+  subject: "21: Valores em um Contexto"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-21", "contexto", "monad", "bind", "maybe"]
+  delimiters: { start: "|", end: "|" }
+  parameters:
+    - { val: 16.0 }
+    - { val: 81.0 }
+    - { val: -25.0 }
+  computations: |
+    safeRoot x = if x >= 0 then Just (sqrt x) else Nothing
+    r1 = Just val >>= safeRoot
+    correct = r1 >>= safeRoot
+  question: |
+    Qual é o resultado da seguinte computação monádica?
+    \begin{minted}{haskell}
+    safeRoot x = if x >= 0 then Just (sqrt x) else Nothing
+
+    Just |show val| >>= safeRoot >>= safeRoot
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{|show correct|}
+    - incorrect: |
+        \mintinline{haskell}{|show (Just (val * val))|}
+    - incorrect: |
+        \mintinline{haskell}{|show r1|}
+    - incorrect: |
+        \mintinline{haskell}{|if val >=0 then "Nothing" else show (Just val)|}
+    - incorrect: |
+        Um erro de tipo.
+
+- id: "contextoDoNotation"
+  title: "Contexto - Notação 'do'"
+  subject: "21: Valores em um Contexto"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-21", "contexto", "monad", "do-notation"]
+  delimiters: { start: "|", end: "|" }
+  parameters:
+    - { v1: 5, v2: 10 }
+    - { v1: 100, v2: 200 }
+  question: |
+    O bloco \mintinline{haskell}{do} a seguir é "syntax sugar" para qual expressão com \mintinline{haskell}{>>=}?
+    \begin{minted}{haskell}
+    do
+        x <- Just |v1|
+        y <- Just |v2|
+        return (x + y)
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{Just |show v1| >>= (\x -> Just |show v2| >>= (\y -> return (x + y)))}
+    - incorrect: |
+        \mintinline{haskell}{Just |show v1| >>= (\x -> Just |show v2| >>= (\y -> x + y))}
+    - incorrect: |
+        \mintinline{haskell}{Just |show v1| >> Just |show v2| >> return (|show v1| + |show v2|)}
+    - incorrect: |
+        \mintinline{haskell}{let x = |show v1| in let y = |show v2| in return (x + y)}
+    - incorrect: |
+        \mintinline{haskell}{return (|show v1| + |show v2|)}
+
+- id: "contextoSequence"
+  title: "Contexto - Função sequence"
+  subject: "21: Valores em um Contexto"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-21", "contexto", "monad", "sequence"]
+  question: |
+    Qual será o resultado da seguinte ação \mintinline{haskell}{IO}? A função \mintinline{haskell}{sequence :: Monad m => [m a] -> m [a]} combina uma lista de ações em uma única.
+
+    \textbf{Exemplos com a Mônada \mintinline{haskell}{Maybe}:}
+    \mintinline{haskell}{sequence [Just 1, Just 2]} resulta em \mintinline{haskell}{Just [1,2]}
+    \mintinline{haskell}{sequence [Just 1, Nothing, Just 3]} resulta em \mintinline{haskell}{Nothing}
+
+    \textbf{Código a ser avaliado:}
+    \begin{minted}{haskell}
+    main :: IO ()
+    main = do
+        let lista = [Just "a", Nothing, Just "b"]
+        print $ sequence lista
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{Nothing}
+    - incorrect: |
+        \mintinline{haskell}{Just ["a", "b"]}
+    - incorrect: |
+        \mintinline{haskell}{Just ["a", Nothing, "b"]}
+    - incorrect: |
+        \mintinline{haskell}{[Just "a", Nothing, Just "b"]}
+    - incorrect: |
+        \mintinline{haskell}{["a", "b"]}

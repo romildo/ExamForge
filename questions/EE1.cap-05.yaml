@@ -1,0 +1,81 @@
+- id: "cap05-where-let-shadowing"
+  title: "Definições Locais - Interação de Escopos com 'where' e 'let'"
+  subject: "5: Definições Locais"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-05", "definições-locais", "escopo", "let", "where", "shadowing"]
+  question: |
+    Analise a função Haskell a seguir, que utiliza tanto uma cláusula \haskellinline{where} quanto uma expressão \haskellinline{let}. Qual será o resultado da avaliação de \haskellinline{f 5}?
+    \begin{minted}{haskell}
+    f x = (let x = 10 in x + y) + x
+      where
+        y = x * 2
+    \end{minted}
+  answers:
+    - correct: |
+        \haskellinline{25}
+    - incorrect: |
+        \haskellinline{40}
+    - incorrect: |
+        \haskellinline{30}
+    - incorrect: |
+        Ocorre um erro de compilação devido à redefinição de \haskellinline{x}.
+    - incorrect: |
+        Ocorre um erro em tempo de execução devido a uma referência ambígua a \haskellinline{x}.
+
+- id: "cap05-let-como-expressao"
+  title: "Definições Locais - 'let' como uma Expressão"
+  subject: "5: Definições Locais"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-05", "definições-locais", "let", "where", "expressões"]
+  question: |
+    Sabendo que uma expressão \haskellinline{let} pode ser usada em qualquer lugar onde um valor é esperado, qual das seguintes opções de código é a única que representa um uso sintaticamente \textbf{inválido} da cláusula \haskellinline{where} em Haskell?
+  answers:
+    - correct: |
+        \mintinline{haskell}{someFunction (where y = x * 2 in y)}
+
+        (Inválido porque \haskellinline{where} é uma cláusula ligada a uma definição, não uma expressão que pode ser passada como argumento.)
+    - incorrect: |
+        \mintinline{haskell}{someFunction x = y where y = x * 2}
+
+        (Uso válido e padrão de \haskellinline{where}.)
+    - incorrect: |
+        \mintinline{haskell}{someFunction x = let y = x * 2 in y}
+
+        (Uso válido de \haskellinline{let} como corpo de uma função.)
+    - incorrect: |
+        \mintinline{haskell}!someFunction x = y + z where {y = x*2; z=x+1}!
+
+        (Uso válido de \haskellinline{where} com múltiplas definições explícitas.)
+    - incorrect: |
+        \mintinline{haskell}{someFunction x = if x > 0 then res else 0 where res = x + 10}
+
+        (Válido, \haskellinline{where} aplica-se a toda a equação, incluindo as guardas e o \haskellinline{if-then-else}.)
+
+- id: "cap05-erro-de-layout"
+  title: "Definições Locais - Erro de Sintaxe por Layout"
+  subject: "5: Definições Locais"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-05", "definições-locais", "layout", "sintaxe", "erros"]
+  question: |
+    Um programador escreveu a função \haskellinline{calcula} abaixo, mas ela não compila. Qual é a causa exata do erro de sintaxe, de acordo com a regra de layout do Haskell?
+    \begin{minted}{haskell}
+    calcula x = resultado
+      where
+        base = x + 2
+       potencia = 2 -- Atenção à indentação desta linha
+        resultado = base ^ potencia
+    \end{minted}
+  answers:
+    - correct: |
+        A definição de \haskellinline{potencia} está desalinhada com a de \haskellinline{base}. A regra de layout exige que todas as definições em um bloco \haskellinline{where} comecem na mesma coluna.
+    - incorrect: |
+        A ordem das definições está errada; \haskellinline{resultado} deveria ser definido antes de ser usado no corpo da função \haskellinline{calcula}.
+    - incorrect: |
+        Falta um ponto-e-vírgula entre as definições de \haskellinline{base} e \haskellinline{potencia}.
+    - incorrect: |
+        A cláusula \haskellinline{where} não pode definir mais de duas variáveis locais sem o uso de chaves explícitas \haskellinline|{}|.
+    - incorrect: |
+        O caractere de tabulação foi provavelmente usado em vez de espaços, confundindo o compilador.

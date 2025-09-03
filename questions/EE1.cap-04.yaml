@@ -1,0 +1,83 @@
+- id: "cap04-inferencia-sobrecarga-erro"
+  title: "Tipos - Erro de Tipo por Inferência e Sobrecarga"
+  subject: "4: Tipos de Dados"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-04", "tipos", "inferência-de-tipos", "sobrecarga", "num"]
+  question: |
+    Considere o seguinte código Haskell. A intenção do programador era dividir a metade de um número \haskellinline{x} por \haskellinline{y}.
+    \begin{minted}{haskell}
+    calculo x y = (x / 2) `div` y
+    \end{minted}
+    Por que este código falha na compilação com um erro de tipo?
+  answers:
+    - correct: |
+        O operador \haskellinline{/} força \haskellinline{x / 2} a ser de um tipo fracionário (\haskellinline{Fractional}), mas o operador \haskellinline{`div`} requer que seus operandos sejam de um tipo integral (\haskellinline{Integral}), causando um conflito de tipos.
+    - incorrect: |
+        A função \haskellinline{div} tem maior precedência que \haskellinline{/}, fazendo com que \haskellinline{2 `div` y} seja avaliado primeiro, o que está sintaticamente incorreto.
+    - incorrect: |
+        Falta uma anotação de tipo explícita para a função, então o compilador não consegue inferir os tipos de \haskellinline{x} e \haskellinline{y}.
+    - incorrect: |
+        A notação infixa com crases não pode ser usada em conjunto com operadores simbólicos como \haskellinline{/}.
+    - incorrect: |
+        O número literal \haskellinline{2} é inferido como \haskellinline{Integer}, que não é compatível com o tipo de \haskellinline{x} se \haskellinline{x} for um \haskellinline{Double}.
+
+- id: "cap04-sinonimos-de-tipo-seguranca"
+  title: "Tipos - Implicações dos Sinônimos de Tipo"
+  subject: "4: Tipos de Dados"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-04", "tipos", "sinônimos-de-tipo", "type"]
+  question: |
+    Um desenvolvedor define dois sinônimos de tipo para representar diferentes tipos de identificadores, com a intenção de evitar misturá-los.
+    \begin{minted}{haskell}
+    type UsuarioID = Int
+    type ProdutoID = Int
+
+    processarUsuario :: UsuarioID -> String
+    processarUsuario uid =
+      "Processando usuário " ++ show uid
+    \end{minted}
+    Se o desenvolvedor acidentalmente chamar a função \haskellinline{processarUsuario} passando um \haskellinline{ProdutoID} em vez de um \haskellinline{UsuarioID}, o que acontecerá durante a compilação?
+  answers:
+    - correct: |
+        O programa compilará com sucesso, pois \haskellinline{UsuarioID} e \haskellinline{ProdutoID} são apenas apelidos para \haskellinline{Int}, e para o sistema de tipos, eles são idênticos.
+    - incorrect: |
+        O programa falhará na compilação com um erro de tipo, pois \haskellinline{UsuarioID} e \haskellinline{ProdutoID} são tipos distintos.
+    - incorrect: |
+        O programa compilará, mas emitirá um aviso sobre a possível confusão entre os tipos de identificadores.
+    - incorrect: |
+        O programa falhará na compilação, pois a palavra-chave \haskellinline{type} só pode ser usada para tipos numéricos.
+    - incorrect: |
+        Ocorrerá um erro em tempo de execução quando a função for chamada com o tipo incorreto de ID.
+
+- id: "cap04-assinatura-tipo-complexa"
+  title: "Tipos - Análise de Assinatura de Tipo Complexa"
+  subject: "4: Tipos de Dados"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-04", "tipos", "assinaturas-de-tipo", "funções"]
+  question: |
+    Qual das seguintes definições de função corresponde à assinatura de tipo \haskellinline{(String, Int) -> (Bool, String)}?
+  answers:
+    - correct: |
+        \begin{haskellcode}
+        processaDados tupla =
+          (snd tupla > 18, "Status: " ++ fst tupla)
+        \end{haskellcode}
+    - incorrect: |
+        \begin{haskellcode}
+        processaDados s i = if i > 0 then s else ""
+        \end{haskellcode}
+    - incorrect: |
+        \begin{haskellcode}
+        processaDados s = (s == "OK", length s)
+        \end{haskellcode}
+    - incorrect: |
+        \begin{haskellcode}
+        processaDados (s, i) = s ++ show i
+        \end{haskellcode}
+    - incorrect: |
+        \begin{haskellcode}
+        processaDados b s = (not b, s ++ "!")
+        \end{haskellcode}

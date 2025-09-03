@@ -1,0 +1,66 @@
+- id: "cap02-ghci-comando-pratico"
+  title: "Ambiente - Comando Prático no GHCi"
+  subject: "2: Ambiente de Desenvolvimento Haskell"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-02", "ambiente", "ghci", "comandos"]
+  question: |
+    Durante uma sessão no GHCi, você carrega um módulo com a função \haskellinline{minhaFuncao}. Você não tem certeza sobre a assinatura de tipo exata da função nem de qual classe de tipo ela faz parte. Qual comando do GHCi você deve usar para obter tanto a assinatura de tipo quanto informações detalhadas sobre a classe de tipo e onde a função foi definida?
+  answers:
+    - correct: |
+        \mintinline{haskell}{:info minhaFuncao}
+    - incorrect: |
+        \mintinline{haskell}{:type minhaFuncao}
+    - incorrect: |
+        \mintinline{haskell}{:browse minhaFuncao}
+    - incorrect: |
+        \mintinline{haskell}{:load minhaFuncao}
+    - incorrect: |
+        \mintinline{haskell}{:help minhaFuncao}
+
+- id: "cap02-ecossistema-ferramentas"
+  title: "Ambiente - Relação entre Ferramentas do Ecossistema"
+  subject: "2: Ambiente de Desenvolvimento Haskell"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-02", "ambiente", "ghcup", "cabal", "ghc"]
+  question: |
+    Um desenvolvedor Haskell precisa iniciar um novo projeto que usará uma versão específica do compilador GHC e dependerá de uma biblioteca externa do Hackage (por exemplo, \haskellinline{random}). Qual das seguintes opções descreve o fluxo de trabalho mais correto e idiomático usando as ferramentas mencionadas no texto?
+  answers:
+    - correct: |
+        Usar o \haskellinline{ghcup} para instalar e gerenciar a versão correta do GHC e do \haskellinline{cabal-install}, e então usar o \haskellinline{cabal} para inicializar o projeto e gerenciar a dependência da biblioteca \haskellinline{random}.
+    - incorrect: |
+        Usar o \haskellinline{ghc} diretamente para compilar o código e baixar manualmente a biblioteca \haskellinline{random} do Hackage.
+    - incorrect: |
+        Usar o \haskellinline{cabal} para instalar o GHC e então usar o \haskellinline{ghcup} para baixar a biblioteca \haskellinline{random}.
+    - incorrect: |
+        Usar o GHCi para instalar o \haskellinline{cabal} e o GHC, e então escrever o código diretamente no REPL.
+    - incorrect: |
+        Baixar o código-fonte do GHC e da biblioteca \haskellinline{random} e compilá-los manualmente na ordem correta.
+
+- id: "cap02-interpretacao-ghci"
+  title: "Ambiente - Interpretação da Saída do GHCi"
+  subject: "2: Ambiente de Desenvolvimento Haskell"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-02", "ambiente", "ghci", "type"]
+  question: |
+    Ao digitar a expressão \haskellinline{sqrt . fromIntegral} no GHCi, você recebe a seguinte saída para o tipo da expressão:
+
+    \begin{minted}{haskell}
+    ghci> :type sqrt . fromIntegral
+    sqrt . fromIntegral :: Integral a => a -> Double
+    \end{minted}
+
+    O que a restrição \haskellinline{Integral a =>} nesta assinatura de tipo significa na prática?
+  answers:
+    - correct: |
+        A função composta pode receber um argumento de qualquer tipo que seja uma instância da classe \haskellinline{Integral} (como \haskellinline{Int} ou \haskellinline{Integer}), e o resultado final será sempre um \haskellinline{Double}.
+    - incorrect: |
+        A função só pode ser aplicada a um valor do tipo concreto \haskellinline{Integral}, não funcionando para \haskellinline{Int} ou \haskellinline{Integer}.
+    - incorrect: |
+        O resultado da função será de um tipo \haskellinline{a}, desde que \haskellinline{a} seja uma instância de \haskellinline{Integral}.
+    - incorrect: |
+        A função requer duas entradas: uma do tipo \haskellinline{Integral} e outra do tipo \haskellinline{a}.
+    - incorrect: |
+        A função é polimórfica e pode receber um argumento de qualquer tipo, incluindo \haskellinline{String} ou \haskellinline{Bool}.

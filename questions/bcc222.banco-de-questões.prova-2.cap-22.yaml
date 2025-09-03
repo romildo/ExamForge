@@ -1,0 +1,115 @@
+- id: "lazyDefinicao"
+  title: "Avaliação Lazy - Definição"
+  subject: "22: Avaliação Lazy"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-22", "lazy-evaluation", "definição"]
+  question: |
+    Qual das seguintes afirmações descreve melhor a estratégia de avaliação tardia (\emph{lazy evaluation}) do Haskell?
+  answers:
+    - correct: |
+        Uma expressão só é avaliada quando seu resultado é realmente necessário.
+    - incorrect: |
+        O compilador otimiza o código para executá-lo o mais rápido possível, mesmo que precise calcular valores que não serão usados.
+    - incorrect: |
+        Todas as funções são avaliadas em paralelo para aumentar a performance.
+    - incorrect: |
+        As ações de I/O são adiadas até o final da execução do programa.
+    - incorrect: |
+        O programador deve usar a palavra-chave \mintinline{haskell}{lazy} para indicar quais expressões devem ser adiadas.
+
+- id: "lazyHeadMapInfinito"
+  title: "Avaliação Lazy - head em Lista Infinita"
+  subject: "22: Avaliação Lazy"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-22", "lazy-evaluation", "listas-infinitas", "head"]
+  delimiters: { start: "|", end: "|" }
+  parameters:
+    - { funcStr: "(*2)",  start: 1 }
+    - { funcStr: "(+10)", start: 5 }
+  computations: |
+    func = read funcStr :: Int -> Int
+    correct = func start
+  question: |
+    Qual o resultado da avaliação da expressão \mintinline{haskell}{head (map |funcStr| [|show start|..])}?
+  answers:
+    - correct: |
+        \mintinline{haskell}{|show correct|}
+    - incorrect: |
+        O programa entra em um loop infinito.
+    - incorrect: |
+        \mintinline{haskell}{|show start|}
+    - incorrect: |
+        Um erro de compilação.
+    - incorrect: |
+        \mintinline{haskell}{[|show correct|]}
+
+- id: "lazySpaceLeak"
+  title: "Avaliação Lazy - Space Leak com foldl"
+  subject: "22: Avaliação Lazy"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-22", "lazy-evaluation", "space-leak", "foldl"]
+  question: |
+    Qual é a principal consequência de se usar a função \mintinline{haskell}{foldl} (fold de esquerda) em uma lista grande, em um contexto de avaliação tardia?
+  answers:
+    - correct: |
+        Ela pode levar a um \emph{space leak} (vazamento de espaço) ao construir uma grande cadeia de computações não avaliadas (thunks).
+    - incorrect: |
+        Ela é sempre mais rápida que \mintinline{haskell}{foldr}.
+    - incorrect: |
+        Ela não pode ser usada com listas infinitas.
+    - incorrect: |
+        Ela processa a lista da direita para a esquerda.
+    - incorrect: |
+        Ela é inerentemente mais estrita que a sua contraparte \mintinline{haskell}{foldl'}.
+
+- id: "lazyListaInfinitaRecursiva"
+  title: "Avaliação Lazy - Lista Infinita Recursiva"
+  subject: "22: Avaliação Lazy"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-22", "lazy-evaluation", "listas-infinitas", "recursão"]
+  delimiters: { start: "|", end: "|" }
+  parameters:
+    - { val: 1, name: "ones" }
+    - { val: 0, name: "zeros" }
+    - { val: 7, name: "sevens" }
+  question: |
+    O que a definição abaixo representa?
+    \begin{minted}{haskell}
+    |name| :: [Integer]
+    |name| = |show val| : |name|
+    \end{minted}
+  answers:
+    - correct: |
+        Uma lista infinita contendo apenas o número |show val|.
+    - incorrect: |
+        Uma função que, quando chamada, retorna a lista \mintinline{haskell}{[|show val|]}.
+    - incorrect: |
+        Um erro de compilação devido à recursão infinita.
+    - incorrect: |
+        Uma lista vazia, pois a recursão não tem caso base.
+    - incorrect: |
+        Uma lista contendo dois elementos: \mintinline{haskell}{[|show val|, |show val|]}.
+
+- id: "lazyAplicacaoEstrita"
+  title: "Avaliação Lazy - Aplicação Estrita ($!)"
+  subject: "22: Avaliação Lazy"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-22", "lazy-evaluation", "estrita", "operadores"]
+  question: |
+    Qual é a principal finalidade do operador de aplicação estrita \mintinline{haskell}{($!)} do módulo \mintinline{haskell}{Data.Function}?
+  answers:
+    - correct: |
+        Aplicar uma função a um argumento, mas forçando a avaliação do argumento antes que a função seja aplicada.
+    - incorrect: |
+        Tornar uma função tardia (\emph{lazy}).
+    - incorrect: |
+        Forçar a avaliação completa de uma lista antes de passá-la para uma função.
+    - incorrect: |
+        Funcionar como um sinônimo para o operador \mintinline{haskell}{($)} com maior precedência.
+    - incorrect: |
+        Compor duas funções de forma estrita.

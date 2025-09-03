@@ -1,0 +1,75 @@
+- id: "cap22-lazy-short-circuit"
+  title: |
+    Avaliação Lazy - Curto-Circuito com \haskellinline{takeWhile}
+  subject: "22: Avaliação Lazy"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-22", "lazy-evaluation", "listas-infinitas", "takeWhile"]
+  question: |
+    A avaliação lazy permite que funções como \haskellinline{takeWhile} operem em listas infinitas, pois a avaliação para assim que a condição se torna falsa. Qual é o resultado da seguinte expressão?
+    \begin{minted}{haskell}
+    takeWhile (< 10) [1, 3, 5, 8, 11, 2, 15]
+    \end{minted}
+  answers:
+    - correct: |
+        \haskellinline{[1, 3, 5, 8]}
+    - incorrect: |
+        \haskellinline{[1, 3, 5, 8, 2]}
+    - incorrect: |
+        \haskellinline{[1, 3, 5]}
+    - incorrect: |
+        O programa entra em um loop infinito.
+    - incorrect: |
+        \haskellinline{[1, 3, 5, 8, 11, 2, 15]}
+
+- id: "cap22-foldl-vs-foldl-pratico"
+  title: |
+    Avaliação Lazy - \haskellinline{foldl} vs. \haskellinline{foldl'} na Prática
+  subject: "22: Avaliação Lazy"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-22", "lazy-evaluation", "space-leak", "foldl", "foldl-strict"]
+  question: |
+    A função \haskellinline{foldl} é preguiçosa e pode criar uma longa cadeia de computações não avaliadas (thunks), levando a um \emph{space leak}. Sua contraparte estrita, \haskellinline{foldl'}, do módulo \haskellinline{Data.List}, força a avaliação do acumulador a cada passo. Considere a função \haskellinline{somaQuadrados} abaixo.
+    \begin{minted}{haskell}
+    somaQuadrados :: [Integer] -> Integer
+    somaQuadrados xs = foldl (\\acc x -> acc + x*x) 0 xs
+    \end{minted}
+    Se você chamasse \haskellinline{somaQuadrados [1..1000000]}, qual seria a consequência mais provável, e qual seria a correção idiomática para evitar o problema?
+  answers:
+    - correct: |
+        Consequência: O programa consumiria uma grande quantidade de memória para armazenar os thunks antes de finalmente calcular o resultado. Correção: Substituir \haskellinline{foldl} por \haskellinline{foldl'}.
+    - incorrect: |
+        Consequência: O programa entraria em um loop infinito. Correção: Usar \haskellinline{foldr} em vez de \haskellinline{foldl}.
+    - incorrect: |
+        Consequência: O programa seria muito lento, mas o uso de memória seria constante. Correção: Adicionar uma anotação de tipo estrita ao acumulador.
+    - incorrect: |
+        Consequência: O programa não compilaria. Correção: Importar \haskellinline{Data.List}.
+    - incorrect: |
+        Não haveria nenhuma consequência negativa; \haskellinline{foldl} é sempre otimizado pelo compilador para ser estrito.
+
+- id: "cap22-lazy-if-then-else"
+  title: |
+    Avaliação Lazy - \haskellinline{if-then-else} com Computação Infinita
+  subject: "22: Avaliação Lazy"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-22", "lazy-evaluation", "if", "listas-infinitas"]
+  question: |
+    A avaliação lazy se aplica a todas as construções da linguagem, incluindo \haskellinline{if-then-else}. Apenas o ramo escolhido pela condição booleana é avaliado. Qual é o resultado da seguinte expressão?
+    \begin{minted}{haskell}
+    if length [1..5] > 3
+      then "Curta"
+      else head [1..] -- Esta expressão nunca termina se avaliada
+    \end{minted}
+  answers:
+    - correct: |
+        \haskellinline{"Curta"}
+    - incorrect: |
+        O programa entra em um loop infinito ao tentar avaliar \haskellinline{head [1..]}.
+    - incorrect: |
+        \haskellinline{"Longa"}
+    - incorrect: |
+        Ocorre um erro de compilação porque os tipos dos ramos \haskellinline{then} e \haskellinline{else} são diferentes.
+    - incorrect: |
+        Ocorre um erro em tempo de execução (\haskellinline{Prelude.head: empty list}).

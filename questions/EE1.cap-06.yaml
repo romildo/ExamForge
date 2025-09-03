@@ -1,0 +1,76 @@
+- id: "cap06-combinacao-zip-lookup"
+  title: |
+    Estruturas - Combinação de \haskellinline{zip} e \haskellinline{lookup}
+  subject: "6: Estruturas de dados básicas"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-06", "estruturas-dados", "listas", "tuplas", "zip", "lookup", "maybe"]
+  question: |
+    Considere o seguinte código Haskell que primeiro combina duas listas em uma lista de associação e depois busca por uma chave. Qual é o resultado final da expressão?
+    \begin{minted}{haskell}
+    let chaves = [1, 2, 3]
+    let valores = ["a", "b", "c"]
+    let listaAssoc = zip chaves valores
+    
+    lookup 2 listaAssoc
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{Just "b"}
+    - incorrect: |
+        \mintinline{haskell}{"b"}
+    - incorrect: |
+        \mintinline{haskell}{Nothing}
+    - incorrect: |
+        \mintinline{haskell}{Just ('b')}
+    - incorrect: |
+        Ocorre um erro de tipo, pois \haskellinline{lookup} não pode ser usado com o resultado de \haskellinline{zip}.
+
+- id: "cap06-funcoes-parciais-erro"
+  title: "Estruturas - Funções Parciais e Erros em Tempo de Execução"
+  subject: "6: Estruturas de dados básicas"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-06", "estruturas-dados", "listas", "funções-parciais", "head", "tail", "erros"]
+  question: |
+    As funções \haskellinline{head} e \haskellinline{tail} são parciais, o que significa que elas causam um erro em tempo de execução se aplicadas a uma lista vazia. Dada a expressão abaixo, qual será o resultado de sua avaliação?
+    \begin{minted}{haskell}
+    head (tail (reverse [1, 2, 3]))
+    \end{minted}
+  answers:
+    - correct: |
+        \haskellinline{2}
+    - incorrect: |
+        \haskellinline{1}
+    - incorrect: |
+        \haskellinline{3}
+    - incorrect: |
+        Ocorre um erro em tempo de execução (\haskellinline{empty list}).
+    - incorrect: |
+        Ocorre um erro de compilação devido ao aninhamento de funções parciais.
+
+- id: "cap06-manipulacao-complexa-listas"
+  title: "Estruturas - Manipulação Complexa de Listas"
+  subject: "6: Estruturas de dados básicas"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-06", "estruturas-dados", "listas", "take", "drop", "sum"]
+  question: |
+    Analise a seguinte expressão que manipula uma progressão aritmética. Qual é o valor final calculado?
+    \begin{minted}{haskell}
+    let xs = [1..10]
+    let ys = take 5 (drop 2 xs)
+    
+    sum ys
+    \end{minted}
+  answers:
+    - correct: |
+        \haskellinline{25}
+    - incorrect: |
+        \haskellinline{15}
+    - incorrect: |
+        \haskellinline{55}
+    - incorrect: |
+        \haskellinline{27}
+    - incorrect: |
+        A expressão resulta em uma lista vazia, e a soma é 0.

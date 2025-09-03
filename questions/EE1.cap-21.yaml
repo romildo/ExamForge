@@ -1,0 +1,78 @@
+- id: "cap21-applicative-lista-produto"
+  title: "Functor Aplicativo - Comportamento em Listas (Produto Cartesiano)"
+  subject: "21: Valores em um Contexto"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-21", "applicative", "listas"]
+  question: |
+    A instância de \haskellinline{Applicative} para listas se comporta de maneira distinta da instância de \haskellinline{Maybe}. Ela aplica \textbf{cada} função da lista à esquerda a \textbf{cada} valor da lista à direita, criando um produto cartesiano dos resultados. Qual é o resultado final da seguinte expressão?
+    \begin{minted}{haskell}
+    [(+10), (*2)] <*> [1, 5]
+    \end{minted}
+  answers:
+    - correct: |
+        \haskellinline{[11, 15, 2, 10]}
+    - incorrect: |
+        \haskellinline{[11, 10]} (resultado de um \haskellinline{zipWith} implícito)
+    - incorrect: |
+        \haskellinline{[11, 2, 15, 10]} (ordem de aplicação incorreta)
+    - incorrect: |
+        Ocorre um erro de tipo, pois a primeira lista deve conter apenas uma função.
+    - incorrect: |
+        \haskellinline{[[11, 15], [2, 10]]}
+
+- id: "cap21-monad-lista-concatmap"
+  title: |
+    Mônada - Encadeamento em Listas (\haskellinline{concatMap})
+  subject: "21: Valores em um Contexto"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-21", "monad", "listas", "bind"]
+  question: |
+    O operador de encadeamento monádico \haskellinline{(>>=)} para listas é equivalente a \haskellinline{flip concatMap}. Ele aplica uma função a cada elemento da lista e depois concatena as listas resultantes. Dada a função \haskellinline{vizinhos} abaixo, qual é o resultado da expressão \haskellinline{[1, 5] >>= vizinhos}?
+    \begin{minted}{haskell}
+    vizinhos :: Int -> [Int]
+    vizinhos x = [x - 1, x, x + 1]
+    \end{minted}
+  answers:
+    - correct: |
+        \haskellinline{[0, 1, 2, 4, 5, 6]}
+    - incorrect: |
+        \haskellinline{[[0, 1, 2], [4, 5, 6]]} (o que um simples \haskellinline{map} faria)
+    - incorrect: |
+        \haskellinline{[0, 6]}
+    - incorrect: |
+        \haskellinline{[1, 5]}
+    - incorrect: |
+        Ocorre um erro de tipo, pois \haskellinline{(>>=)} não pode ser usado com listas.
+
+- id: "cap21-abstracao-minima"
+  title: "Contexto - Escolhendo a Abstração Mínima"
+  subject: "21: Valores em um Contexto"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-21", "functor", "applicative", "monad", "abstração"]
+  question: |
+    Você precisa implementar a lógica para encontrar um usuário em um banco de dados e, \textbf{se} o usuário for encontrado, usar o ID dele para buscar suas permissões em outro serviço. Ambas as operações podem falhar (retornando \haskellinline{Nothing}).
+    \begin{minted}{haskell}
+    findUser :: String -> Maybe User
+    getPermissions :: User -> Maybe Permissions
+    \end{minted}
+    Qual é a classe de tipo (abstração) \textbf{mínima} necessária para encadear essas duas computações de forma que a segunda (\haskellinline{getPermissions}) dependa do resultado da primeira (\haskellinline{findUser})?
+  answers:
+    - correct: |
+        \haskellinline{Monad}
+
+        (Por causa do operador \haskellinline{>>=}, que permite o encadeamento de computações dependentes.)
+    - incorrect: |
+        \haskellinline{Functor}
+
+        (Pois \haskellinline{fmap} não permite que a segunda computação dependa do valor extraído da primeira.)
+    - incorrect: |
+        \haskellinline{Applicative}
+
+        (Pois \haskellinline{(<*>)} aplica uma função a um valor, mas não permite alterar a estrutura da computação com base no resultado.)
+    - incorrect: |
+        \haskellinline{Functor} e \haskellinline{Applicative} em conjunto são suficientes.
+    - incorrect: |
+        Nenhuma classe de tipo é necessária; isso pode ser resolvido apenas com \haskellinline{if-then-else}.

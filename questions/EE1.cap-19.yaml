@@ -1,0 +1,86 @@
+- id: "cap19-record-syntax-acesso"
+  title: "Tipos Algébricos - Sintaxe de Registro e Funções de Acesso"
+  subject: "19: Tipos Algébricos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-19", "tipos-algébricos", "record-syntax", "tipos-produto"]
+  question: |
+    A \emph{sintaxe de registro} em uma declaração \haskellinline{data} cria automaticamente funções de acesso para cada campo. Considere a definição do tipo \haskellinline{Pessoa} abaixo. Qual será o resultado da expressão \haskellinline{(idade joana) + 1}?
+    \begin{minted}{haskell}
+    data Pessoa = Pessoa { nome :: String
+                         , idade :: Int
+                         }
+        deriving (Show)
+
+    joana = Pessoa { nome = "Joana", idade = 29 }
+    \end{minted}
+  answers:
+    - correct: |
+        \haskellinline{30}
+    - incorrect: |
+        Ocorre um erro de tipo, pois \haskellinline{idade} não é uma função.
+    - incorrect: |
+        \haskellinline{Pessoa { nome = "Joana", idade = 30 }}
+    - incorrect: |
+        Ocorre um erro de compilação, pois a sintaxe de registro é inválida.
+    - incorrect: |
+        \haskellinline{29}
+
+- id: "cap19-arvore-recursiva"
+  title: "Tipos Algébricos - Recursão em uma Árvore Binária"
+  subject: "19: Tipos Algébricos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-19", "tipos-algébricos", "recursão", "ávores-binárias"]
+  question: |
+    Tipos algébricos recursivos não se limitam a estruturas lineares como listas. Considere o tipo \haskellinline{Arvore} para uma árvore binária de inteiros. Qual é o resultado da avaliação de \haskellinline{somaArvore arvoreExemplo}?
+    \begin{minted}{haskell}
+    data Arvore = Folha Int | No Arvore Arvore
+
+    somaArvore :: Arvore -> Int
+    somaArvore (Folha n)   = n
+    somaArvore (No esq dir) = somaArvore esq + somaArvore dir
+
+    arvoreExemplo = No (No (Folha 10) (Folha 5)) (Folha 20)
+    \end{minted}
+  answers:
+    - correct: |
+        \haskellinline{35}
+    - incorrect: |
+        \haskellinline{15}
+    - incorrect: |
+        \haskellinline{20}
+    - incorrect: |
+        A função entrará em um loop infinito por não ter um caso base.
+    - incorrect: |
+        Ocorre um erro de tipo, pois \haskellinline{(+)} não pode ser aplicado a chamadas recursivas.
+
+- id: "cap19-padroes-aninhados-soma"
+  title: "Tipos Algébricos - Padrões Aninhados com Tipos Soma"
+  subject: "19: Tipos Algébricos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-19", "tipos-algébricos", "padrões-aninhados", "maybe", "tipos-soma"]
+  question: |
+    O casamento de padrão é especialmente poderoso para desestruturar tipos de dados aninhados. Qual é o resultado da expressão \haskellinline{processa (Just (Usuario "Ana"))}?
+    \begin{minted}{haskell}
+    data Cargo = Usuario String | Admin String
+
+    processa :: Maybe Cargo -> String
+    processa maybeCargo =
+      case maybeCargo of
+        Just (Admin nome) -> "Admin: " ++ nome
+        Just (Usuario _)  -> "Usuario comum"
+        Nothing           -> "Ninguem logado"
+    \end{minted}
+  answers:
+    - correct: |
+        \haskellinline{"Usuario comum"}
+    - incorrect: |
+        \haskellinline{"Admin: Ana"}
+    - incorrect: |
+        \haskellinline{"Ninguem logado"}
+    - incorrect: |
+        Ocorre um erro de compilação por padrões redundantes.
+    - incorrect: |
+        Ocorre um erro em tempo de execução por padrões não-exaustivos.

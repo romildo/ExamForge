@@ -1,0 +1,134 @@
+- id: "adtSomaProdutoArea"
+  title: "ADT - Tipos Soma e Produto (Cálculo de Área)"
+  subject: "19: Tipos Algébricos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-19", "adt", "tipos-soma", "tipos-produto"]
+  delimiters: { start: "|", end: "|" }
+  parameters:
+    - { b: 5.0, h: 4.0, r: 0.0, is_rect: True }
+    - { b: 10.0, h: 2.5, r: 0.0, is_rect: True }
+    - { b: 0.0, h: 0.0, r: 5.0, is_rect: False }
+  computations: |
+    expr = if is_rect then "Retangulo " ++ show b ++ " " ++ show h else "Circulo " ++ show r
+    correct = if is_rect then b * h else pi * r ^ 2
+    areaFuncCode = "data Forma = Circulo Float | Retangulo Float Float\n\ncalculaArea :: Forma -> Float\ncalculaArea (Circulo r) = pi * r ^ 2\ncalculaArea (Retangulo b h) = b * h"
+  question: |
+    Considere o tipo \mintinline{haskell}{Forma} e a função \mintinline{haskell}{calculaArea}. Qual é o resultado da expressão \mintinline{haskell}{calculaArea (|expr|)}?
+    \begin{minted}{haskell}
+    |areaFuncCode|
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{|printf "%.1f" correct|}
+    - incorrect: |
+        \mintinline{haskell}{|printf "%.1f" (6.0 * 3.0)|}
+    - incorrect: |
+        Um erro de tipo.
+    - incorrect: |
+        \mintinline{haskell}{|printf "%.5f" (pi * 10.0 ^ 2)|}
+    - incorrect: |
+        Um erro de casamento de padrão não exaustivo.
+
+- id: "adtDerivingShow"
+  title: "ADT - deriving Show"
+  subject: "19: Tipos Algébricos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-19", "adt", "deriving", "show"]
+  question: |
+    O código a seguir falha na compilação. Qual é a causa do erro?
+    \begin{minted}{haskell}
+    data Usuario = MkUsuario { nome :: String, id :: Int }
+
+    joao = MkUsuario "Joao" 101
+    main = print joao
+    \end{minted}
+  answers:
+    - correct: |
+        Falta a cláusula \mintinline{haskell}{deriving (Show)} na definição do tipo \mintinline{haskell}{Usuario}.
+    - incorrect: |
+        O nome do construtor \mintinline{haskell}{MkUsuario} não pode começar com letra maiúscula.
+    - incorrect: |
+        A função \mintinline{haskell}{print} não pode ser usada com tipos customizados.
+    - incorrect: |
+        A sintaxe de registro está incorreta.
+    - incorrect: |
+        A variável \mintinline{haskell}{joao} deveria ter uma anotação de tipo explícita.
+
+- id: "adtRecursivoComprimento"
+  title: "ADT - Tipo Recursivo (Comprimento)"
+  subject: "19: Tipos Algébricos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-19", "adt", "recursão"]
+  question: |
+    Considere o tipo recursivo \mintinline{haskell}{Lista} e a função \mintinline{haskell}{comprimento}. Qual o resultado de \mintinline{haskell}{comprimento (Cons 10 (Cons 20 Vazia))}?
+    \begin{minted}{haskell}
+    data Lista a = Vazia | Cons a (Lista a)
+
+    comprimento :: Lista a -> Int
+    comprimento Vazia = 0
+    comprimento (Cons _ cauda) = 1 + comprimento cauda
+    \end{minted}
+  answers:
+    - correct: |
+        2
+    - incorrect: |
+        0
+    - incorrect: |
+        1
+    - incorrect: |
+        3
+    - incorrect: |
+        30
+
+- id: "adtTipoMaybe"
+  title: "ADT - Tipo Maybe"
+  subject: "19: Tipos Algébricos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-19", "adt", "maybe", "tipos"]
+  question: |
+    Qual é a assinatura de tipo mais geral para a função \mintinline{haskell}{extrai}, cujo comportamento é demonstrado nos exemplos abaixo?
+    \begin{minted}{haskell}
+    -- Exemplos de uso:
+    -- extrai 0 (Just 42)    -> 42
+    -- extrai 0 Nothing      -> 0
+
+    extrai valorPadrao maybeValor = 
+        case maybeValor of
+            Just x  -> x
+            Nothing -> valorPadrao
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{a -> Maybe a -> a}
+    - incorrect: |
+        \mintinline{haskell}{Maybe a -> a -> a}
+    - incorrect: |
+        \mintinline{haskell}{a -> Maybe b -> c}
+    - incorrect: |
+        \mintinline{haskell}{Maybe a -> Maybe a}
+    - incorrect: |
+        \mintinline{haskell}{Show a => a -> Maybe a -> a}
+
+- id: "adtTeoriaConjuntos"
+  title: "ADT - Relação com Teoria dos Conjuntos"
+  subject: "19: Tipos Algébricos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-19", "adt", "teoria-conjuntos", "tipos-soma"]
+  question: |
+    Um tipo \mintinline{haskell}{Soma} em Haskell, como \mintinline{haskell}{data Opcao = Sim | Nao}, é análogo a qual conceito em teoria de conjuntos?
+  answers:
+    - correct: |
+        União Disjunta
+    - incorrect: |
+        Produto Cartesiano
+    - incorrect: |
+        Interseção
+    - incorrect: |
+        Conjunto das Partes
+    - incorrect: |
+        Mapeamento (Função)

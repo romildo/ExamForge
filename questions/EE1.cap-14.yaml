@@ -1,0 +1,103 @@
+- id: "cap14-desugar-funcao-para-case"
+  title: |
+    case - 'Desaçucarando' uma Função para \haskellinline{case}
+  subject: "14: Expressão case"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-14", "case", "padrões", "syntactic-sugar"]
+  question: |
+    As definições de função com múltiplas equações e casamento de padrão são consideradas \emph{açúcar sintático} para uma expressão \haskellinline{case} subjacente. Dada a seguinte função \haskellinline{processa}, qual das expressões \haskellinline{case} abaixo é a sua tradução exata?
+    \begin{minted}{haskell}
+    processa :: [Int] -> Int
+    processa []    = 0
+    processa [x]   = x
+    processa (x:y:_) = x + y
+    \end{minted}
+  answers:
+    - correct: |
+        \begin{minted}{haskell}
+        processa xs = case xs of
+                        []    -> 0
+                        [x]   -> x
+                        (x:y:_) -> x + y
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        processa xs = case xs of
+                        (x:y:_) -> x + y
+                        [x]   -> x
+                        []    -> 0
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        processa xs = if null xs
+                      then 0
+                      else head xs + head (tail xs)
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        processa = case of
+                     []    -> 0
+                     [x]   -> x
+                     (x:y:_) -> x + y
+        \end{minted}
+    - incorrect: |
+        A função \haskellinline{processa} não pode ser reescrita usando uma expressão \haskellinline{case}.
+
+- id: "cap14-padrao-inalcancavel"
+  title: "case - Padrão Inalcançável"
+  subject: "14: Expressão case"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-14", "case", "padrões", "erros", "ordem-de-avaliacao"]
+  question: |
+    A ordem dos padrões em uma expressão \haskellinline{case} é crucial, pois eles são testados de cima para baixo. Na expressão \haskellinline{case} abaixo, um dos padrões nunca será alcançado, não importa o valor de \haskellinline{xs}. Qual padrão é inalcançável e por quê?
+    \begin{minted}{haskell}
+    analisaLista xs =
+      case xs of
+        []      -> "Vazia"
+        (x:_)   -> "Nao vazia, comeca com " ++ show x
+        [a, b]  -> "Lista com dois elementos"
+        _       -> "Outro caso"
+    \end{minted}
+  answers:
+    - correct: |
+        O padrão \haskellinline{[a, b]} é inalcançável, pois qualquer lista com dois elementos (ou mais) já casará com o padrão \haskellinline{(x:_)} que vem antes dele.
+    - incorrect: |
+        O padrão \haskellinline{_} é inalcançável, pois todos os casos possíveis são cobertos pelos padrões anteriores.
+    - incorrect: |
+        O padrão \haskellinline{[]} é inalcançável, pois \haskellinline{(x:_)} também cobre a lista vazia.
+    - incorrect: |
+        O padrão \haskellinline{(x:_)} é inalcançável, pois o padrão mais específico \haskellinline{[a, b]} deveria vir primeiro.
+    - incorrect: |
+        Todos os padrões são alcançáveis; o compilador irá escolher o mais específico para cada entrada.
+
+- id: "cap14-case-com-guardas"
+  title: |
+    case - Análise de \haskellinline{case} com Guardas
+  subject: "14: Expressão case"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-14", "case", "guardas"]
+  question: |
+    Uma expressão \haskellinline{case} pode ser combinada com guardas para adicionar verificações condicionais a um padrão. Qual é o resultado da avaliação da expressão \haskellinline{verifica (Just (-10))}?
+    \begin{minted}{haskell}
+    verifica :: Maybe Int -> String
+    verifica maybeValor =
+      case maybeValor of
+        Nothing -> "Nenhum valor"
+        Just n | n > 0     -> "Positivo"
+               | n == 0    -> "Zero"
+               | otherwise -> "Negativo"
+    \end{minted}
+  answers:
+    - correct: |
+        \haskellinline{"Negativo"}
+    - incorrect: |
+        \haskellinline{"Positivo"}
+    - incorrect: |
+        \haskellinline{"Zero"}
+    - incorrect: |
+        \haskellinline{"Nenhum valor"}
+    - incorrect: |
+        Ocorre um erro de compilação, pois guardas não podem ser usadas dentro de uma expressão \haskellinline{case}.

@@ -1,0 +1,130 @@
+- id: "typeclassFaltaOrd"
+  title: "Classes de Tipos - Falta da Instância Ord"
+  subject: "20: Classes de Tipos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-20", "typeclass", "ord", "deriving"]
+  question: |
+    O código a seguir não compila. Por quê?
+
+    A função \mintinline{haskell}{sort} do módulo \mintinline{haskell}{Data.List} ordena os elementos de uma lista em ordem ascendente. Sua assinatura de tipo é \mintinline{haskell}{sort :: Ord a => [a] -> [a]}.
+    \begin{minted}{haskell}
+    import Data.List (sort)
+
+    data Prioridade = Baixa | Media | Alta deriving (Show)
+
+    main = print (sort [Alta, Baixa])
+    \end{minted}
+  answers:
+    - correct: |
+        O tipo \mintinline{haskell}{Prioridade} não possui uma instância da classe \mintinline{haskell}{Ord}.
+    - incorrect: |
+        O tipo \mintinline{haskell}{Prioridade} não possui uma instância da classe \mintinline{haskell}{Show}.
+    - incorrect: |
+        A função \mintinline{haskell}{sort} não pode ser usada com tipos de dados algébricos.
+    - incorrect: |
+        \mintinline{haskell}{print} não pode ser combinada com \mintinline{haskell}{sort}.
+    - incorrect: |
+        A lista está fora de ordem.
+
+- id: "typeclassRead"
+  title: "Classes de Tipos - Função read"
+  subject: "20: Classes de Tipos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-20", "typeclass", "read"]
+  delimiters: { start: "|", end: "|" }
+  parameters:
+    - { exprStr: "(1, True)",         typeStr: "(Int, Bool)" }
+    - { exprStr: "Just 10",           typeStr: "Maybe Int" }
+    - { exprStr: "Left "Erro"", "Either String Int" }
+  computations: |
+    correctAnsw = case typeStr of
+      "(Int, Bool)"       -> show (read exprStr :: (Int, Bool))
+      "Maybe Int"         -> show (read exprStr :: Maybe Int)
+      "Either String Int" -> show (read exprStr :: Either String Int)
+      _                   -> ""
+    distractor = if typeStr == "(Int, Bool)" then "(True, 1)" else "Nothing"
+  question: "Qual é o resultado da expressão \mintinline{haskell}{read "|exprStr|" :: |typeStr|}?"
+  answers:
+    - correct: |
+        \mintinline{haskell}{|correctAnsw|}
+    - incorrect: |
+        \mintinline{haskell}{"|exprStr|"}
+    - incorrect: |
+        Um erro de compilação por falta de informação de tipo.
+    - incorrect: |
+        Um erro em tempo de execução.
+    - incorrect: |
+        \mintinline{haskell}{|distractor|}
+
+- id: "typeclassInstanciaManualEq"
+  title: "Classes de Tipos - Instância Manual de Eq"
+  subject: "20: Classes de Tipos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-20", "typeclass", "eq", "instance"]
+  delimiters: { start: "|", end: "|" }
+  parameters:
+    - { s1: "a", i1: 1, s2: "a", i2: 2 }
+    - { s1: "b", i1: 5, s2: "c", i2: 5 }
+    - { s1: "xyz", i1: 10, s2: "xyz", i2: 10 }
+  computations: |
+    correct = s1 == s2
+  question: |
+    Considere a instância manual de \mintinline{haskell}{Eq} para o tipo \mintinline{haskell}{Caixa}. Qual será o resultado de \mintinline{haskell}{(Caixa "|s1|" |show i1|) == (Caixa "|s2|" |show i2|)}?
+    \begin{minted}{haskell}
+    data Caixa = Caixa String Int
+
+    instance Eq Caixa where
+        (Caixa nome1 _) == (Caixa nome2 _) = nome1 == nome2
+    \end{minted}
+  answers:
+    - correct: |
+        |if correct then "\\mintinline{haskell}{True}, pois a implementação de \\mintinline{haskell}{(==)} compara apenas o campo \\mintinline{haskell}{String}." else "\\mintinline{haskell}{False}, pois a implementação de \\mintinline{haskell}{(==)} compara apenas o campo \\mintinline{haskell}{String}."|
+    - incorrect: |
+        |if i1 == i2 then "\\mintinline{haskell}{True}, pois os valores inteiros são iguais." else "\\mintinline{haskell}{False}, pois os valores inteiros são diferentes."|
+    - incorrect: |
+        Um erro de compilação.
+    - incorrect: |
+        Um erro de casamento de padrão não exaustivo.
+    - incorrect: |
+        O resultado é ambíguo.
+
+- id: "typeclassNum"
+  title: "Classes de Tipos - Num"
+  subject: "20: Classes de Tipos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-20", "typeclass", "num"]
+  question: "A classe de tipos \\mintinline{haskell}{Num} em Haskell é usada para tipos numéricos. Qual das seguintes afirmações sobre a restrição \\mintinline{haskell}{Num a => a -> a -> a} para a função \\mintinline{haskell}{(+)} é a mais precisa?"
+  answers:
+    - correct: |
+        Ela garante que os dois argumentos de \mintinline{haskell}{(+)} sejam do mesmo tipo numérico.
+    - incorrect: |
+        Ela permite somar um \mintinline{haskell}{Int} com um \mintinline{haskell}{Double} diretamente.
+    - incorrect: |
+        Ela significa que \mintinline{haskell}{(+)} só pode ser usada com o tipo \mintinline{haskell}{Integer}.
+    - incorrect: |
+        Ela é apenas uma recomendação e o compilador faz conversões automáticas.
+    - incorrect: |
+        Ela permite que a função \mintinline{haskell}{(+)} retorne um tipo diferente dos argumentos.
+
+- id: "typeclassSuperclasse"
+  title: "Classes de Tipos - Superclasses"
+  subject: "20: Classes de Tipos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-20", "typeclass", "ord", "eq", "superclass"]
+  question: "A classe \\mintinline{haskell}{Ord} é uma subclasse de \\mintinline{haskell}{Eq}. O que isso significa na prática ao definir uma nova instância para \\mintinline{haskell}{Ord}?"
+  answers:
+    - correct: |
+        Que um tipo deve ter uma instância de \mintinline{haskell}{Eq} para poder ter uma instância de \mintinline{haskell}{Ord}.
+    - incorrect: |
+        Que todo tipo que é \mintinline{haskell}{Ord} deve também ser \mintinline{haskell}{Show}.
+    - incorrect: |
+        Que \mintinline{haskell}{Ord} e \mintinline{haskell}{Eq} são intercambiáveis.
+    - incorrect: |
+        Que ao definir uma instância para \mintinline{haskell}{Ord}, você automaticamente ganha uma instância para \mintinline{haskell}{Eq}.
+    - incorrect: |
+        Que a implementação de \mintinline{haskell}{(==)} pode ser usada para definir \mintinline{haskell}{(<)}.

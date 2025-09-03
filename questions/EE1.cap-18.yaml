@@ -1,0 +1,104 @@
+- id: "cap18-design-puro-impuro"
+  title: "Arquivos - Padrão de Design Puro vs. Impuro"
+  subject: "18: Argumentos da Linha de Comando e Arquivos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-18", "io", "pureza", "design-patterns"]
+  question: |
+    O texto enfatiza o padrão de design que separa a \emph{borda impura} (E/S) do \emph{núcleo puro} (lógica de negócio). Considere o programa que processa notas de alunos. Qual das seguintes funções pertence ao \textbf{núcleo puro} do programa?
+  answers:
+    - correct: |
+        \haskellinline{processaLinha :: String -> String}
+
+        (Uma função que recebe uma linha do arquivo e a transforma, sem realizar nenhuma E/S.)
+    - incorrect: |
+        \haskellinline{main :: IO ()}
+
+        (A entrada principal do programa, que orquestra as ações de E/S.)
+    - incorrect: |
+        \haskellinline{readFile "notas.txt"}
+
+        (Uma ação de E/S que interage com o sistema de arquivos.)
+    - incorrect: |
+        \haskellinline{getArgs :: IO [String]}
+
+        (Uma ação de E/S que lê os argumentos da linha de comando.)
+    - incorrect: |
+        \haskellinline{writeFile "saida.txt" conteudo}
+
+        (Uma ação de E/S que grava em um arquivo.)
+
+- id: "cap18-lazy-io-getcontents"
+  title: |
+    Arquivos - E/S Preguiçosa (\haskellinline{lazy}) com \haskellinline{getContents}
+  subject: "18: Argumentos da Linha de Comando e Arquivos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-18", "io", "lazy-evaluation", "getcontents", "memória"]
+  question: |
+    A ação \mintinline{haskell}{getContents} lê a entrada padrão de forma \emph{preguiçosa} (\emph{lazy}), enquanto \mintinline{haskell}{readFile} lê um arquivo de forma mais estrita (embora ainda com alguma preguiça). Qual é a principal vantagem prática de usar \mintinline{haskell}{getContents} para processar um arquivo de log de vários gigabytes, como no exemplo \haskellinline{runhaskell prog.hs < arquivo_grande.log}?
+  answers:
+    - correct: |
+        O programa não carrega o arquivo inteiro na memória RAM de uma só vez, processando-o em partes, o que permite lidar com arquivos maiores que a memória disponível.
+    - incorrect: |
+        A execução é significativamente mais rápida do que com \haskellinline{readFile}, pois a leitura é feita em paralelo.
+    - incorrect: |
+        \haskellinline{getContents} garante que o arquivo será fechado automaticamente, enquanto \haskellinline{readFile} exige o fechamento manual.
+    - incorrect: |
+        \haskellinline{getContents} converte automaticamente o conteúdo do arquivo para uma lista de linhas, eliminando a necessidade de usar a função \haskellinline{lines}.
+    - incorrect: |
+        Não há vantagem prática; \haskellinline{getContents} é apenas um sinônimo para \haskellinline{readFile "/dev/stdin"}.
+
+- id: "cap18-composicao-acoes-io"
+  title: "Arquivos - Composição de Ações de E/S"
+  subject: "18: Argumentos da Linha de Comando e Arquivos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-18", "io", "getargs", "readfile", "writefile"]
+  question: |
+    Qual trecho de código \haskellinline{main} implementa corretamente a seguinte lógica?
+    \begin{quote}
+      O programa deve receber dois nomes de arquivo da linha de comando, ler o conteúdo do primeiro arquivo, convertê-lo para letras maiúsculas e gravar o resultado no segundo arquivo?
+    \end{quote}  
+    Assuma a importação de \haskellinline{Data.Char (toUpper)}.
+  answers:
+    - correct: |
+        \begin{minted}{haskell}
+        main :: IO ()
+        main = do
+          [arqEntrada, arqSaida] <- getArgs
+          conteudo <- readFile arqEntrada
+          let conteudoMaiusculo = map toUpper conteudo
+          writeFile arqSaida conteudoMaiusculo
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        main :: IO ()
+        main = do
+          let [arqEntrada, arqSaida] = getArgs
+          let conteudo = readFile arqEntrada
+          let conteudoMaiusculo = map toUpper conteudo
+          writeFile arqSaida conteudoMaiusculo
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        main :: IO ()
+        main = do
+          (arqEntrada:arqSaida:_) <- getArgs
+          conteudo <- map toUpper (readFile arqEntrada)
+          writeFile arqSaida conteudo
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        main :: String -> String -> IO ()
+        main arqEntrada arqSaida = do
+          conteudo <- readFile arqEntrada
+          writeFile arqSaida (map toUpper conteudo)
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        main :: IO ()
+        main = do
+          [arqEntrada, arqSaida] <- getArgs
+          writeFile arqSaida (map toUpper (readFile arqEntrada))
+        \end{minted}

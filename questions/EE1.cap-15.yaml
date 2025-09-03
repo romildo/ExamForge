@@ -1,0 +1,87 @@
+- id: "cap15-erro-pureza-io"
+  title: "Valores Aleatórios - Erro de Pureza com IO"
+  subject: "15: Valores Aleatórios"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-15", "aleatórios", "io", "pureza", "erros"]
+  question: |
+    Um programador tentou criar uma função pura que gerasse um número aleatório entre 1 e 6, mas o código a seguir não compila. Qual é a razão conceitual fundamental para o erro de tipo?
+    \begin{minted}{haskell}
+    import System.Random
+
+    lancarDado :: Int -- Assinatura de tipo incorreta
+    lancarDado = randomRIO (1, 6)
+    \end{minted}
+  answers:
+    - correct: |
+        A função \haskellinline{randomRIO (1, 6)} não retorna um \haskellinline{Int}, mas sim uma ação do tipo \haskellinline{IO Int}. Não é possível atribuir um valor do tipo \haskellinline{IO a} a um nome que se espera ser do tipo puro \haskellinline{a}.
+    - incorrect: |
+        A função \haskellinline{randomRIO} só pode ser usada dentro da ação \haskellinline{main} e não pode ser chamada por outras funções.
+    - incorrect: |
+        Faltou importar o módulo \haskellinline{System.IO} para lidar com a ação de E/S.
+    - incorrect: |
+        O tipo \haskellinline{Int} não é uma instância da classe \haskellinline{Random}, por isso não pode ser gerado aleatoriamente.
+    - incorrect: |
+        A tupla \haskellinline{(1, 6)} deveria ser uma lista \haskellinline{[1, 6]} para especificar a faixa de valores.
+
+- id: "cap15-combinando-acoes-io"
+  title: "Valores Aleatórios - Combinando Ações de E/S"
+  subject: "15: Valores Aleatórios"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-15", "aleatórios", "io", "do-notation", "bind"]
+  question: |
+    Imagine que você precisa simular o lançamento de dois dados de seis faces e somar os resultados. Qual dos seguintes trechos de código em um bloco \haskellinline{do} implementa corretamente esta lógica?
+  answers:
+    - correct: |
+        \begin{minted}{haskell}
+        dado1 <- randomRIO (1, 6)
+        dado2 <- randomRIO (1, 6)
+        let soma = dado1 + dado2
+        print soma
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        let dado1 = randomRIO (1, 6)
+        let dado2 = randomRIO (1, 6)
+        print (dado1 + dado2)
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        resultado <- randomRIO (1, 6) + randomRIO (1, 6)
+        print resultado
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        soma <- do
+            dado1 <- randomRIO (1, 6)
+            dado2 <- randomRIO (1, 6)
+            return (dado1 + dado2)
+        print soma
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        print (randomRIO (1, 6) >>= \\d1 ->
+               randomRIO (1, 6) >>= \\d2 ->
+               d1 + d2)
+        \end{minted}
+
+- id: "cap15-indice-aleatorio-seguro"
+  title: "Valores Aleatórios - Índice Aleatório Seguro"
+  subject: "15: Valores Aleatórios"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-15", "aleatórios", "listas", "erros", "random"]
+  question: |
+    Você quer escrever uma ação \haskellinline{IO} que seleciona um elemento aleatório de uma lista. Os índices de uma lista de tamanho \haskellinline{n} vão de \haskellinline{0} a \haskellinline{n-1}. Dada uma lista não vazia \haskellinline{xs}, qual é a chamada correta a \haskellinline{randomRIO} para gerar um índice válido e seguro (que nunca causará um erro de "índice fora dos limites")?
+  answers:
+    - correct: |
+        \mintinline{haskell}{randomRIO (0, length xs - 1)}
+    - incorrect: |
+        \mintinline{haskell}{randomRIO (1, length xs)}
+    - incorrect: |
+        \mintinline{haskell}{randomRIO (0, length xs)}
+    - incorrect: |
+        \mintinline{haskell}{randomRIO (1, length xs - 1)}
+    - incorrect: |
+        \mintinline{haskell}{randomIO (length xs)}

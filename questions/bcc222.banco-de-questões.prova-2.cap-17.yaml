@@ -1,0 +1,191 @@
+- id: "hofComposicaoComplexa"
+  title: "HOF - Composição Complexa"
+  subject: "17: Funções de Ordem Superior"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-17", "hof", "composição"]
+  delimiters: { start: "|", end: "|" }
+  parameters:
+    - { val: 10 }
+    - { val: 5 }
+    - { val: 8 }
+  computations: |
+    f = sum . filter odd
+    g x = [x, x-1 .. 1]
+    g_res = g val
+    correct = f g_res
+  question: |
+    Considere as funções \mintinline{haskell}{f} e \mintinline{haskell}{g}. Qual é o resultado da expressão \mintinline{haskell}{(f . g) |val|}?
+    \begin{minted}{haskell}
+    f :: [Int] -> Int
+    f = sum . filter odd
+
+    g :: Int -> [Int]
+    g x = [x, x-1 .. 1]
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{|show correct|}
+    - incorrect: |
+        \mintinline{haskell}{|show (sum g_res)|}
+    - incorrect: |
+        \mintinline{haskell}{|show (sum (filter even g_res))|}
+    - incorrect: |
+        Um erro de tipo.
+    - incorrect: |
+        \mintinline{haskell}{[|show correct|]}
+
+- id: "hofTipoInferido"
+  title: "HOF - Tipo Inferido"
+  subject: "17: Funções de Ordem Superior"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-17", "hof", "tipos"]
+  question: |
+    Qual é o tipo mais geral da seguinte função de ordem superior?
+    \begin{minted}{haskell}
+    minhaHOF f g xs = filter f (map g xs)
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{(b -> Bool) -> (a -> b) -> [a] -> [b]}
+    - incorrect: |
+        \mintinline{haskell}{(a -> Bool) -> (a -> b) -> [a] -> [b]}
+    - incorrect: |
+        \mintinline{haskell}{a -> b -> [a] -> [b]}
+    - incorrect: |
+        \mintinline{haskell}{Foldable t => (a -> b) -> (b -> Bool) -> t a -> [b]}
+    - incorrect: |
+        \mintinline{haskell}{(a -> b) -> (b -> c) -> [a] -> [c]}
+
+- id: "hofFoldlSubtract"
+  title: "HOF - foldl com subtract"
+  subject: "17: Funções de Ordem Superior"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-17", "hof", "foldl", "subtract"]
+  delimiters: { start: "|", end: "|" }
+  parameters:
+    - { initial: 100, list: [10, 5, 2] }
+    - { initial: 50,  list: [1, 2, 3] }
+  computations: |
+    correct = foldl subtract initial list
+    wrongFold = foldr subtract initial list
+  question: |
+    Dada a expressão \mintinline{haskell}{let op = subtract in foldl op |show initial| |show list|}, qual é o resultado final?
+  answers:
+    - correct: |
+        \mintinline{haskell}{|show correct|}
+    - incorrect: |
+        \mintinline{haskell}{|show wrongFold|}
+    - incorrect: |
+        \mintinline{haskell}{|show (foldl (+) initial list)|}
+    - incorrect: |
+        A expressão \mintinline{haskell}{subtract} não pode ser usada desta forma.
+    - incorrect: |
+        \mintinline{haskell}{|show initial|}
+
+- id: "hofPointFree"
+  title: "HOF - Estilo Point-Free"
+  subject: "17: Funções de Ordem Superior"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-17", "hof", "point-free"]
+  question: |
+    O estilo \textit{point-free} consiste em definir funções sem explicitar seus argumentos. Qual das expressões a seguir é uma refatoração em estilo \textit{point-free} da função \mintinline{haskell}{calcula}?
+    \begin{minted}{haskell}
+    calcula xs = sum (map (*2) xs)
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{calcula = sum . map (*2)}
+    - incorrect: |
+        \mintinline{haskell}{calcula = (*2) . sum}
+    - incorrect: |
+        \mintinline{haskell}{calcula = map (*2) . sum}
+    - incorrect: |
+        \mintinline{haskell}{calcula = sum $ map (*2)}
+    - incorrect: |
+        Não é possível refatorar esta função para o estilo \textit{point-free}.
+
+- id: "hofUtilidadeDollar"
+  title: "HOF - Utilidade do Operador $"
+  subject: "17: Funções de Ordem Superior"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-17", "hof", "operadores", "dollar"]
+  question: |
+    Qual é a principal utilidade do operador \mintinline{haskell}{($)} em Haskell?
+  answers:
+    - correct: |
+        Aplicar uma função a um argumento, com baixa precedência, permitindo a remoção de parênteses.
+    - incorrect: |
+        Compor duas funções para criar uma nova.
+    - incorrect: |
+        Mapear uma função sobre uma lista.
+    - incorrect: |
+        Filtrar os elementos de uma lista com base em um predicado.
+    - incorrect: |
+        Criar uma seção de um operador infixo.
+
+- id: "hofFlipExpoente"
+  title: "HOF - flip com Potência"
+  subject: "17: Funções de Ordem Superior"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-17", "hof", "flip", "operadores"]
+  delimiters: { start: "|", end: "|" }
+  parameters:
+    - { exp: 2, list: [1, 2, 3, 4, 5] }
+    - { exp: 3, list: [1, 2, 3] }
+  computations: |
+    correct = map (^^ exp) list
+    wrongOp = map (* exp) list
+    wrongFlip = map (exp ^) list
+  question: |
+    A função \mintinline{haskell}{flip} inverte os dois primeiros argumentos de uma função. Sabendo que o operador \mintinline{haskell}{(^)} calcula a potência (ex: \mintinline{haskell}{2 ^ 3} resulta em 8), qual será o resultado da expressão abaixo?
+    \begin{minted}{haskell}
+    map (flip (^) |show exp|) |show list|
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{|show correct|}
+    - incorrect: |
+        \mintinline{haskell}{|show wrongOp|}
+    - incorrect: |
+        Um erro de tipo.
+    - incorrect: |
+        \mintinline{haskell}{|show wrongFlip|}
+    - incorrect: |
+        \mintinline{haskell}{|show (reverse correct)|}
+
+- id: "hofRetornaFuncao"
+  title: "HOF - Retornando uma Função"
+  subject: "17: Funções de Ordem Superior"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-17", "hof", "currying"]
+  delimiters: { start: "|", end: "|" }
+  parameters:
+    - { n: 5,  x: 10 }
+    - { n: 10, x: 20 }
+    - { n: 3,  x: 7 }
+  computations: |
+    correct = n * x
+  question: |
+    Considere a função de ordem superior \mintinline{haskell}{gerarMultiplicador}. Qual é o resultado de \mintinline{haskell}{let mult = gerarMultiplicador |show n| in mult |show x|}?
+    \begin{minted}{haskell}
+    gerarMultiplicador :: Int -> (Int -> Int)
+    gerarMultiplicador n = \y -> n * y
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{|show correct|}
+    - incorrect: |
+        \mintinline{haskell}{|show (n + x)|}
+    - incorrect: |
+        Um erro de tipo.
+    - incorrect: |
+        \mintinline{haskell}{|show x|}
+    - incorrect: |
+        \mintinline{haskell}{|show n|}

@@ -1,0 +1,98 @@
+- id: "cap13-ordem-padroes-curinga"
+  title: "Padrões - Ordem de Padrões e Curingas"
+  subject: "13: Casamento de Padrão"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-13", "padrões", "ordem-de-avaliação", "curinga"]
+  question: |
+    A ordem das equações em uma definição de função com casamento de padrão é crucial. O compilador testa os padrões de cima para baixo. Considere a função \haskellinline{verificar} abaixo. Qual será o resultado da expressão \haskellinline{verificar [1, 2, 3]}?
+    \begin{minted}{haskell}
+    verificar :: [Int] -> String
+    verificar [] = "Vazia"
+    verificar _ = "Qualquer lista"
+    verificar (x:xs) = "Não vazia"
+    \end{minted}
+  answers:
+    - correct: |
+        \haskellinline{"Qualquer lista"}
+    - incorrect: |
+        \haskellinline{"Não vazia"}
+    - incorrect: |
+        Ocorre um erro de compilação devido a padrões redundantes.
+    - incorrect: |
+        \haskellinline{"Vazia"}
+    - incorrect: |
+        Ocorre um erro em tempo de execução, pois o padrão \haskellinline{(x:xs)} é mais específico.
+
+- id: "cap13-linearidade-erro"
+  title: "Padrões - Violação do Princípio da Linearidade"
+  subject: "13: Casamento de Padrão"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-13", "padrões", "linearidade", "erros"]
+  question: |
+    O princípio da linearidade em Haskell afirma que uma variável não pode aparecer mais de uma vez em um único padrão. A intenção deste princípio é forçar a comparação de igualdade a ser explícita (usando guardas), em vez de implícita no padrão.
+
+    Qual das seguintes definições de função falhará na compilação devido a uma violação direta do princípio da linearidade?
+  answers:
+    - correct: |
+        \begin{minted}{haskell}
+        iguais :: (Int, Int) -> Bool
+        iguais (x, x) = True
+        iguais _      = False
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        primeiro :: (a, b) -> a
+        primeiro (x, _) = x
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        somaDois :: [Int] -> Int
+        somaDois (x:y:_) = x + y
+        somaDois _       = 0
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        ehNulo :: Int -> Bool
+        ehNulo 0 = True
+        ehNulo _ = False
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        comparaComZero :: Int -> Bool
+        comparaComZero x | x == 0 = True
+                         | otherwise = False
+        \end{minted}
+
+- id: "cap13-padroes-aninhados-maybe"
+  title: |
+    Padrões - Padrões Aninhados com \haskellinline{Maybe} e Tuplas
+  subject: "13: Casamento de Padrão"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-13", "padrões", "padrões-aninhados", "maybe", "tuplas"]
+  question: |
+    O casamento de padrão pode ser usado para desestruturar tipos de dados aninhados de forma concisa. Qual é o resultado da avaliação da expressão \haskellinline{processa (Just (10, "OK"))}?
+    \begin{minted}{haskell}
+    processa :: Maybe (Int, String) -> String
+    processa (Just (valor, "OK")) =
+      "Sucesso com valor: " ++ show valor
+    processa (Just (_, "ERRO")) =
+      "Falha conhecida"
+    processa Nothing =
+      "Nenhum dado"
+    processa _ =
+      "Outro status"
+    \end{minted}
+  answers:
+    - correct: |
+        \haskellinline{"Sucesso com valor: 10"}
+    - incorrect: |
+        \haskellinline{"Falha conhecida"}
+    - incorrect: |
+        \haskellinline{"Nenhum dado"}
+    - incorrect: |
+        \haskellinline{"Outro status"}
+    - incorrect: |
+        Ocorre um erro de compilação por padrões não-exaustivos.

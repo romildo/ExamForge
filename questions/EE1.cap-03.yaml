@@ -1,0 +1,62 @@
+- id: "cap03-precedencia-complexa"
+  title: "Expressões - Precedência Complexa de Operadores"
+  subject: "3: Expressões e Definições"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-03", "expressões", "precedência", "operadores"]
+  question: |
+    Com base na tabela de precedência de operadores do Haskell e sabendo que a aplicação de função tem a maior precedência de todas, qual é o resultado final da seguinte expressão?
+    \begin{minted}{haskell}
+    sqrt 9 * 10 `div` 2 + 5
+    \end{minted}
+  answers:
+    - correct: |
+        \haskellinline{20.0}
+    - incorrect: |
+        \haskellinline{7.5}
+    - incorrect: |
+        \haskellinline{35.0}
+    - incorrect: |
+        Ocorre um erro de tipo, pois \haskellinline{`div`} não pode ser usado com o resultado de \haskellinline{sqrt}.
+    - incorrect: |
+        Ocorre um erro de sintaxe devido ao uso de \haskellinline{`div`} em notação infixa.
+
+- id: "cap03-notacao-infixa-prefixa"
+  title: "Expressões - Conversão entre Notação Infixa e Prefixa"
+  subject: "3: Expressões e Definições"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-03", "expressões", "infixa", "prefixa", "operadores"]
+  question: |
+    Em Haskell, funções prefixas podem ser usadas como infixas (com crases) e operadores infixos podem ser usados como prefixos (com parênteses). Qual das seguintes reescritas da expressão \mintinline{haskell}{100 `mod` (5 * 2)} é funcionalmente equivalente à original?
+  answers:
+    - correct: |
+        \mintinline{haskell}{mod 100 ((*) 5 2)}
+    - incorrect: |
+        \mintinline{haskell}{100 `mod` (*) 5 2}
+    - incorrect: |
+        \mintinline{haskell}{(`mod` 100) (5 `*` 2)}
+    - incorrect: |
+        \mintinline{haskell}{(mod) 100 (*) 5 2}
+    - incorrect: |
+        \mintinline{haskell}{100 (mod) (5 * 2)}
+
+- id: "cap03-erros-sintaxe-comuns"
+  title: "Expressões - Erros de Sintaxe Comuns"
+  subject: "3: Expressões e Definições"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-03", "expressões", "sintaxe", "erros"]
+  question: |
+    Um programador iniciante, vindo de outras linguagens, escreveu as quatro expressões a seguir em Haskell. Com base nas regras de sintaxe da linguagem, qual delas é a única que será avaliada sem causar um erro de sintaxe ou de tipo?
+  answers:
+    - correct: |
+        \mintinline{haskell}{4 * (-3)}
+    - incorrect: |
+        \mintinline{haskell}{4 * -3}
+    - incorrect: |
+        \mintinline{haskell}{logBase(2, 8)}
+    - incorrect: |
+        \mintinline{haskell}{3 > 2 > 1}
+    - incorrect: |
+        \mintinline{haskell}{let x = 5; in x + 2}
