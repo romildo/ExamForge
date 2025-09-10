@@ -39,7 +39,8 @@ library
     ExamForge.Parser,
     ExamForge.Exam,
     ExamForge.Generator,
-    ExamForge.Formatter.Latex
+    ExamForge.Formatter.Latex,
+    ExamConfig
 
   -- Modules included in this library but not exported.
   -- other-modules:
@@ -53,7 +54,9 @@ library
     aeson,
     yaml,
     text,
-    containers
+    containers,
+    Glob,
+    bytestring
 
   -- Directories containing source files.
   hs-source-dirs:   src
@@ -67,15 +70,18 @@ library
 --------------------------------------------------------------------------------
 executable examforge
   -- The name of the main module.
-  main-is:          Main.hs
+  main-is:          Forge.hs
 
   -- The packages this executable depends on.
   build-depends:
     base >=4.12 && <5,
     ExamForge,
+    Glob,
     yaml,
     directory,
-    filepath
+    filepath,
+    aeson,
+    pretty-show
 
   -- Directories containing source files.
   hs-source-dirs:   app
@@ -88,7 +94,7 @@ executable examforge
 -- This program USES the generated modules to build final exams.
 --------------------------------------------------------------------------------
 executable exam-assembler
-  main-is:          Assembler.hs
+  main-is:          Assemble.hs
   other-modules:    Generated.Questions
 
   build-depends:

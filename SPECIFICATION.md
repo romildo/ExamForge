@@ -1,101 +1,90 @@
-# ExamForge Question Template Specification (v2.1)
+# ExamForge Specification (v3.0)
 
-`ExamForge` uses a YAML-based format to define question templates. A single `.yml` file can contain a list of one or more question template objects.
+`ExamForge` uses two types of YAML files to manage the exam generation process:
+1.  **Exam Configuration Files:** High-level files that define *what* an exam is, which questions it uses, and how it should be assembled.
+2.  **Question Template Files:** Low-level files that define the actual *content* of the questions.
 
-## Top-Level Structure
+---
+## 1. Exam Configuration File
 
-The root of a `.yml` file must be a **list** of question template objects.
+This file acts as the main "recipe" for an exam. It is the single input to the `exam-assembler` executable.
+
+### Top-Level Structure
+
+The root of the file is a single object with the following keys.
 
 ```yaml
-- id: "question-001"
-  # ... fields for the first question
-- id: "question-002"
-  # ... fields for the second question
-```
+# File: configs/EE1.yml
+
+header: { ... }
+question_banks: [ ... ]
+assembly_options: { ... }  # Optional
+selection: { ... }         # Optional
+content: { ... }           # Optional
+````
+
+### Key Reference
+
+#### `header` (Object, Required)
+
+Metadata for the PDF title page and answer sheet.
+
+  * `institution` (String)
+  * `course` (String)
+  * `professor` (String)
+  * `semester` (String)
+  * `title` (String)
+
+#### `question_banks` (List of Strings, Required)
+
+A list of file paths to the question bank `.yml` files. Supports glob patterns.
+*Example:* `["questions/cap01.yml", "questions/cap02-*.yml"]`
+
+#### `assembly_options` (Object, Optional)
+
+Settings that control how the exam is assembled.
+
+  * `versions` (Int): Number of unique exam versions to generate. (Default: `1`)
+  * `show_id` (Bool): If `true`, prints the question `id` in the exam. (Default: `false`)
+  * `show_tags` (Bool): If `true`, prints the question `tags` in the exam. (Default: `false`)
+  * `hide_subjects` (Bool): If `true`, hides the `subject` field in the exam. (Default: `false`)
+
+#### `selection` (Object, Optional)
+
+Rules for filtering which questions from the banks are included.
+
+  * `include_tags` (List of Strings): A list of regex patterns. A question is included if **any** of its tags match **any** of the patterns. If this list is omitted or empty, all questions pass this filter.
+  * `exclude_tags` (List of Strings): A list of regex patterns. A question is excluded if **any** of its tags match **any** of the patterns.
+
+#### `content` (Object, Optional)
+
+Additional content to be inserted into the exam.
+
+  * `instructions` (String): A multi-line string of instructions to be printed on the title page. (Default: `""`)
 
 -----
 
-## Question Template Object
+## 2\. Question Template File
+
+A single `.yml` file can contain a **list** of one or more question template objects.
+
+### Question Template Object
 
 Each object in the list represents a single question template and is defined by a set of key-value pairs.
 
-### Required Keys
+#### Required Keys
 
-  * `id` (String): A unique identifier for the question (e.g., `"logic-001"`, `"chapter5-recursion"`). It's used to generate the Haskell module name.
+  * `id` (String): A unique identifier for the question (e.g., `"logic-001"`).
   * `title` (String): A human-readable title for the question.
-  * `format` (String): The primary output format for the question's content (e.g., `"latex"`, `"markdown"`).
-  * `selection_type` (String): Defines how correct answers are evaluated.
-      * `"any"`: At least one of the correct answers must be chosen (for multiple-choice, single-answer questions).
-      * `"all"`: All of the correct answers (and no incorrect ones) must be chosen.
-  * `question` (String): The template string for the question body. This can be a multi-line string.
-  * `answers` (List of Objects): A list defining the answer choices. Each object must have a single key:
-      * `correct`: The value is the template string for a correct answer.
-      * `incorrect`: The value is the template string for an incorrect answer.
+  * `format` (String): The primary output format (e.g., `"latex"`).
+  * `selection_type` (String): Defines how correct answers are evaluated (`"any"` or `"all"`).
+  * `question` (String): The template string for the question body.
+  * `answers` (List of Objects): A list defining the answer choices. Each object has a single key: `correct` or `incorrect`.
 
-### Optional Keys
+#### Optional Keys
 
   * `subject` (String): The subject or chapter the question relates to.
-  * `tags` (List of Strings): A list of keywords for filtering and organization. If omitted, it defaults to an empty list `[]`.
-  * `parameters` (List of Objects): A list of parameter sets to generate question variants. Each object is a map of variable names to their values (String, Number, or Bool). If omitted, it defaults to an empty list `[]`, producing one static variant.
-  * `computations` (String): A block of Haskell code containing `let` bindings. The variables defined here, along with those from `parameters`, are available for use within the `question` and `answer` templates.
-  * `delimiters` (Object): An object specifying the start and end delimiters for expressions within templates. If omitted, defaults to `{{` and `}}`.
-      * `start`: The starting delimiter string.
-      * `end`: The ending delimiter string.
-
------
-
-## Full Example
-
-This example demonstrates all features, including multiple questions in one file, custom delimiters, parameters, and computations.
-
-```yaml
-# File: chapter16.yml
--
-  id: "cap16-lambdaAninhada"
-  title: "Lambda Aninhada"
-  format: "latex"
-  subject: "16: Expressão Lambda"
-  tags: ["lambda", "haskell", "função anônima"]
-  selection_type: "any"
-  delimiters: { start: "|", end: "|" }
-
-  parameters:
-    - { x: 5,  y: 3 }
-    - { x: 6,  y: 2 }
-    - { y: 5,  x: 10 } # Order does not matter
-
-  computations: |
-    correct = x * 2 + y
-    distractor1 = "Erro de tipo"
-    distractor2 = x * y + 2
-    distractor3 = correct + 5
-
-  question: |
-    Analise a expressão Haskell a seguir. Qual será o resultado de sua avaliação?
-    
-    \begin{minted}{haskell}
-    let f = (\x -> \y -> x * 2 + y) |show x| in f |show y|
-    \end{minted}
-
-  answers:
-    - correct:   "\\mintinline{haskell}{|show correct|}"
-    - incorrect: "|distractor1|"
-    - incorrect: "\\mintinline{haskell}{|show distractor2|}"
-    - incorrect: "\\mintinline{haskell}{|show distractor3|}"
-
--
-  id: "static-test-001"
-  title: "Simple Static Test"
-  format: "markdown"
-  selection_type: "all"
-  tags: ["testing"]
-
-  question: "Which of the following are prime numbers?"
-
-  answers:
-    - correct: "2"
-    - incorrect: "4"
-    - correct: "7"
-    - incorrect: "9"
-
-```
+  * `tags` (List of Strings): Keywords for filtering. Defaults to `[]`.
+  * `parameters` (List of Objects): Parameter sets to generate question variants. Defaults to `[]`.
+  * `computations` (String): A block of Haskell `let` bindings.
+  * `delimiters` (Object): Custom delimiters for expressions (e.g., `{ start: "|", end: "|" }`). Defaults to `{{` and `}}`.

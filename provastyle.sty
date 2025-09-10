@@ -8,7 +8,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[brazil]{babel}
-\usepackage[hmargin=17mm,vmargin=15mm]{geometry}
+\usepackage[hmargin=15mm,vmargin=15mm]{geometry}
 \usepackage{indentfirst}
 \usepackage{pslatex}
 \usepackage[scaled=0.82]{DejaVuSansMono}
@@ -79,17 +79,23 @@
 % --- Comando para marcar a posição DAS ZONAS DE RESPOSTA (VERSÃO CORRIGIDA) ---
 % Este comando agora mede o quadrado e salva suas dimensões, assim como o \TextZone.
 
-% Primeiro, definimos o conteúdo do nosso quadrado, baseado na sua macro original.
-\newcommand{\respBoxContent}{\large\raisebox{-0.4ex}{\framebox(10,10){}}}
+% First, define the content/style of your answer box
+\newcommand{\respBoxContent}{\Large\raisebox{-0.4ex}{\framebox(12,12){}}}
 
-% Agora, o \ZoneBox usa esse conteúdo para medir, salvar posições/dimensões e desenhar.
+% Now, define the ZoneBox command that uses the content to measure,
+% save all properties, and then draw the box.
 \newcommand{\ZoneBox}[1]{%
-  \sbox{\TextZoneBox}{\respBoxContent}% Coloca o quadrado na caixa de medição
-  \zsavepos{\detokenize{#1}}% Salva a posição (X,Y) no arquivo .aux
-  % Escreve as dimensões (W,H) no arquivo .zonas
+  \sbox{\TextZoneBox}{\respBoxContent}% Put the box content into a temporary savebox to measure it
+  \zsavepos{\detokenize{#1}}% Save the (X,Y) position to the .aux file
+  % Write the (W,H) dimensions to the .zonas file
   \immediate\write\zonasfile{zoneprop{\detokenize{#1}}{width}{\the\wd\TextZoneBox}}%
   \immediate\write\zonasfile{zoneprop{\detokenize{#1}}{height}{\the\ht\TextZoneBox}}%
-  \usebox{\TextZoneBox}% Desenha o quadrado na página
+  \usebox{\TextZoneBox}% Finally, draw the box on the page
+}
+
+% --- Helper command to write a generic property to the .zonas file ---
+\newcommand{\ZoneProperty}[2]{%
+  \immediate\write\zonasfile{zoneprop{#1}{value}{#2pt}}%
 }
 
 % --- Comando para marcar zonas retangulares como Matrícula e Nome ---
@@ -124,6 +130,52 @@
     \vspace{0.5cm}
 }
 
+% Add this to provastyle.sty
+\newcommand{\makeexamtitlepage}[6]{%
+  \begin{center}
+    \vspace*{1cm}
+    {\large #1}\\[1.5ex]      % Institution
+    {\normalsize #2}\\[1.5ex]  % Course
+    {\normalsize Professor: #3}\\[1.5ex] % Professor
+    {\normalsize Semestre: #4}\\[3em]    % Semester
+    {\Huge\bfseries #5}\\[1em]      % Title
+    {\Large\bfseries Versão: #6}      % Version
+  \end{center}
+  \vspace{1cm}
+  \hrule
+  \vspace{0.5cm}
+}
+
+
+% A parameterized macro for the answer sheet header.
+% 1.institution 2.course 3.professor 4.semester 5.title 6.version 7.numQuestions 8.numQCol
+\newcommand{\makeanswersheet}[8]{%
+  \newpage
+  \thispagestyle{empty}
+
+  \begin{center}
+    {\huge #5 \hfill \Large \bfseries Folha de Respostas \hfil \TextZone{exam_type}{#6}}\\[1.5ex] % Title Version
+    {\Large #4 -- \Large #1 -- \Large #2 \hfill \large Prof. #3}\\[1.5ex] % Semester Institution Course Professor
+  \end{center}
+  \vspace{1ex}
+
+  \noindent\textbf{Matrícula:} \hfil \textbf{Nome:} \hfil \hfil \hfil \\
+  \hrule
+  
+  \begin{center}
+    \begin{minipage}{0.8\textwidth}
+      \textbf{Instruções}:
+      \begin{itemize}[noitemsep,topsep=0.5ex, partopsep=0pt, leftmargin=*]
+        \item Use caneta preta ou azul e preencha por completo o quadrado da alternativa escolhida.
+        \item Rasuras anularão a questão.
+      \end{itemize}
+    \end{minipage}
+  \end{center}
+  \vspace{0.5cm}
+
+  % Calls the dynamic grid generation with total questions and questions per column
+  \folhadeRespostasDinamica{#7}{#8}
+}
 
 % --- FOLHA DINÂMICA DE RESPOSTAS ---
   
@@ -141,10 +193,9 @@
 }
 \ExplSyntaxOff
 
-% Uso: \folhadeRespostasDinamica{<Tipo da Prova>}{<Total de Questões>}{<Questões por Coluna>}
-% Ex.: \folhadeRespostasDinamica{B-01}{40}{20}
-\newcommand{\folhadeRespostasDinamica}[3]{%
-  \newpage
+% Uso: \folhadeRespostasDinamica{<Total de Questões>}{<Questões por Coluna>}
+% Ex.: \folhadeRespostasDinamica{40}{20}
+\newcommand{\folhadeRespostasDinamica}[2]{%
   %
   % Em seu arquivo .tex principal, depois de \begin{document}
   \AddToShipoutPictureBG*{%
@@ -162,50 +213,43 @@
       \TextZone{marker_bl}{\phantom{x}}
     \end{tikzpicture}%
   }
-  %
-  \thispagestyle{empty}
-  \begin{center}
-    \large\bfseries BCC222 -- Programação Funcional -- 2025/1 \\[1ex]
-    \Large Folha de Respostas \\[1ex]
-    \large Prova~\TextZone{tipo_prova}{#1} \\[5ex]
-  \end{center}
 
-  \noindent\textbf{Nome:} \hfil \hfil \textbf{Matrícula:} \hfil \\
-  \hrule
-  % \vspace{0.5cm}
-
-  \begin{center}
-    \begin{minipage}{0.8\textwidth}
-      \textbf{Instruções}:
-      \begin{itemize}[noitemsep,topsep=0.5ex, partopsep=0pt, leftmargin=*]
-        \item Use caneta preta ou azul e preencha por completo o quadrado da alternativa escolhida.
-        \item Marque apenas UMA alternativa por questão. Rasuras anularão a questão.
-      \end{itemize}
-    \end{minipage}
-  \end{center}
-  \vspace{0.5cm}
+    % Write the layout properties to the .zonas file
+  \ZoneProperty{total_questions}{#1}
+  \ZoneProperty{max_questions_per_column}{#2}
 
   % número de colunas (ceil)
-  \pgfmathtruncatemacro{\numcols}{int((#2 + #3 - 1)/#3)}
+  \pgfmathtruncatemacro{\numcols}{int((#1 + #2 - 1)/#2)}
   \renewcommand{\arraystretch}{1.4}
 
   \begin{multicols}{\numcols}
     \centering
     % Itera colunas com \foreach (fora do tabular é seguro)
     \foreach \col in {1,...,\numcols}{%
-      \pgfmathtruncatemacro{\startq}{(\col - 1) * #3 + 1}%
-      \pgfmathtruncatemacro{\endq}{min(\col * #3, #2)}%
+      \pgfmathtruncatemacro{\startq}{(\col - 1) * #2 + 1}%
+      \pgfmathtruncatemacro{\endq}{min(\col * #2, #1)}%
       \PrintRespBlock{\startq}{\endq}%
       \par\medskip
     }%
   \end{multicols}
 
-  \vfill
-  \huge
-  \rule{0.6em}{0.5em}
-  \TextZone{matricula}{\phantom{\texttt{\rule{0em}{3em}99.9.9999}}}
-  \phantom{--}
-  \TextZone{nome}{\phantom{\texttt{\rule{0em}{3em}FULANO BELTRANO CICRANO DE TAL E TAL}}}
+  % \vfill
+  % \huge
+  % \rule{0.6em}{0em}
+  % \TextZone{student_id_}{\phantom{\texttt{\rule{0em}{3em}99.9.9999}}}
+  % \phantom{--}
+  % \TextZone{student_name_}{\phantom{\texttt{\rule{0em}{3em}FULANO BELTRANO CICRANO DE TAL E TAL}}}
+
+  \begin{tikzpicture}[remember picture, overlay]
+    \node[anchor=south west,
+          inner sep=0pt,
+          outer sep=0pt,
+          font=\ttfamily\fontsize{16}{19.2}\selectfont,
+          text opacity=0,
+          shift={(50pt, 50pt)}
+    ] at (current page.south west)
+    {\TextZone{student_id}{\rule{0mm}{7mm}88.8.8888}\hspace{6mm}\TextZone{student_name}{\rule{0mm}{7mm}FULANO FULANO FULANO FULANO FULANO FULANO FULANO}};
+  \end{tikzpicture}
 }
 
 % --- MACRO PARA O GABARITO ---
