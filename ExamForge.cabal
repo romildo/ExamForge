@@ -111,3 +111,26 @@ executable exam-assembler
     generated
 
   default-language: Haskell2010
+
+--------------------------------------------------------------------------------
+-- Executable Stanza: Jupyter Proof of Concept
+-- This program is a minimal, standalone Haskell program that acts as a Jupyter client
+--------------------------------------------------------------------------------
+executable jupyter-poc
+    main-is:          Poc.hs
+    hs-source-dirs:   app
+    build-depends:    base >=4.12 && <5
+                    , aeson
+                    , bytestring
+                    , directory
+                    , filepath
+                    , process
+                    , random
+                    , text
+                    , uuid
+                    , zeromq4-haskell
+                    , yaml
+                    , cryptonite
+                    , memory
+                    , pretty-show
+    default-language: Haskell2010
