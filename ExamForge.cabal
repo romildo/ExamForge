@@ -1,4 +1,4 @@
-cabal-version:      2.2
+cabal-version:      2.4
 name:               ExamForge
 version:            0.1.0.0
 
@@ -35,12 +35,13 @@ source-repository head
 library
   -- Modules exported by the library.
   exposed-modules:
-    ExamForge.Type,
-    ExamForge.Parser,
-    ExamForge.Exam,
-    ExamForge.Generator,
-    ExamForge.Formatter.Latex,
-    ExamConfig
+      ExamForge.Type
+    , ExamForge.Parser
+    , ExamForge.Exam
+    , ExamForge.Generator
+    , ExamForge.Formatter.Latex
+    , ExamConfig
+    , ExamForge.Jupyter.Client
 
   -- Modules included in this library but not exported.
   -- other-modules:
@@ -50,13 +51,22 @@ library
 
   -- The packages this library depends on.
   build-depends:
-    base >=4.12 && <5,
-    aeson,
-    yaml,
-    text,
-    containers,
-    Glob,
-    bytestring
+      base >=4.12 && <5
+    , yaml
+    , aeson
+    , directory
+    , filepath
+    , random
+    , Glob
+    , bytestring
+    , zeromq4-haskell
+    , uuid
+    , cryptonite
+    , memory
+    , process
+    , text
+    , containers
+    , pretty-show
 
   -- Directories containing source files.
   hs-source-dirs:   src
@@ -120,17 +130,7 @@ executable jupyter-poc
     main-is:          Poc.hs
     hs-source-dirs:   app
     build-depends:    base >=4.12 && <5
-                    , aeson
-                    , bytestring
-                    , directory
-                    , filepath
-                    , process
-                    , random
-                    , text
-                    , uuid
+                    , ExamForge
                     , zeromq4-haskell
-                    , yaml
-                    , cryptonite
-                    , memory
                     , pretty-show
     default-language: Haskell2010
