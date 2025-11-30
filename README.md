@@ -1,54 +1,136 @@
+<!-- File: README.md -->
+
 # ExamForge 🚀
 
-ExamForge is a command-line tool written in Haskell for generating multiple, unique versions of exams from a flexible YAML-based question bank. It is driven by declarative configuration files that specify everything about the exam, from the header and instructions to the question selection criteria.
+ExamForge is a command-line toolchain written in Haskell for generating parameterized, LaTeX-based exams from declarative YAML specifications. A single exam configuration file controls everything from the header and instructions to question selection criteria.
 
-It is designed for educators who need to create exams with parameterized questions, ensuring that each version is different but fair. The system automatically generates high-quality, printable PDF exams and a CSV answer key for automated grading.
+It is designed for instructors who are comfortable with LaTeX, YAML, and basic command-line tools, and who want to produce multiple exam versions plus answer keys in a repeatable way.
+
+---
+
+## Status
+
+ExamForge is currently **pre-1.0** and under active development.
+
+- The YAML specification is versioned (current: **Specification v3.0**).
+- CLI behavior and internal implementation may change.
+- Changes to the tools and the specification will be recorded in `ChangeLog.md`.
+
+For the normative YAML format, see [`SPECIFICATION.md`](SPECIFICATION.md).
+
+---
 
 ## Features
 
-* **Declarative Exam Configuration:** Define entire exams, including metadata, question sources, and filtering rules, in clean, reusable YAML files.
-* **Flexible Question Specification:** Define questions, parameters, and computational logic in a separate, human-readable YAML format.
-* **Parameterized Questions:** Create countless variations of a single question template using variables and Haskell expressions.
-* **Deterministic Variety:** Ensures all question variations are used over time through a unique cycling and shuffling algorithm.
-* **PDF & LaTeX Output:** Generates professional, ready-to-compile `.tex` files and print-ready `.pdf` files, including a scannable answer sheet.
-* **CSV Answer Key:** Automatically produces a CSV file with the correct answers for all generated exam versions.
+- **Declarative Exam Configuration**  
+  Define entire exams in YAML: metadata, question bank locations, assembly options, and selection rules.
 
-## Workflow
+- **Flexible Question Specification**  
+  Define questions, parameters, tags, and computational logic in separate, human-readable YAML files.
 
-The system now works in a unified, config-driven process automated by a `Makefile`:
+- **Parameterized Questions**  
+  Generate many variants of a conceptual question using parameter sets and small Haskell expressions.
 
-1.  **Define:** Create a YAML file in the `configs/` directory to specify the exam you want to build. This file points to the question bank files (`.yml` files in the `questions/` directory) and sets all assembly options.
-2.  **Build:** Run a single `make` command. This command orchestrates the entire workflow:
-    * **`examforge`** is called to read your question banks and compile them into an efficient Haskell module.
-    * **`exam-assembler`** is called with your exam configuration file. It uses the generated module to select questions, create the specified number of unique exam versions (`.tex` files), and produce the CSV answer key.
-    * **`latexmk`** compiles the `.tex` files into final `.pdf` documents.
+- **Balanced Variant Generation**  
+  Each question is expanded into an infinite stream of variants, and versions are built by cycling through these streams and shuffling answers. The selection/shuffling algorithm is deterministic *given a random seed*; the current executables may obtain their seed from the runtime system.
 
-## Prerequisites
+- **PDF & LaTeX Output**  
+  Produces `.tex` sources and final `.pdf` files using `latexmk`/`lualatex`, including student-ready versions and answer-sheets-only PDFs.
 
-* [GHC (Glasgow Haskell Compiler)](https://www.haskell.org/ghc/)
-* [Cabal (Haskell build tool)](https://www.haskell.org/cabal/)
-* A TeX distribution (e.g., TeX Live) with `lualatex` and `latexmk`.
-* PDF manipulation tools: `qpdf` and `pdfunite` (from `poppler-utils`).
+- **CSV Answer Key**  
+  Generates a `.csv` answer key for all versions of an exam, suitable for automated grading or downstream tooling.
 
-## Build Instructions
+---
 
-To build both executables (`examforge` and `exam-assembler`), run the following command from the project's root directory:
+## Quickstart
+
+### 1. Install prerequisites
+
+You’ll need:
+
+- [GHC (Glasgow Haskell Compiler)](https://www.haskell.org/ghc/)
+- [Cabal](https://www.haskell.org/cabal/)
+- A TeX distribution with `lualatex` and `latexmk` (e.g. TeX Live)
+- PDF utilities:
+  - `qpdf`
+  - `pdfunite` (usually from `poppler-utils`)
+
+Install these using your system’s package manager.
+
+### 2. Build the tools
+
+From the project root:
 
 ```bash
 cabal build
 ````
 
-## Usage with `Makefile`
+This builds two executables:
 
-The recommended way to generate exams is by using the provided `Makefile`.
+* `examforge` – compiles question bank YAML files into a Haskell module.
+* `exam-assembler` – reads an exam configuration and generates `.tex` exams and a `.csv` answer key.
 
-### 1\. Create an Exam Configuration File
+---
 
-Create a new `.yml` file in the `configs/` directory (e.g., `configs/EE1.yml`). See the **[Exam Configuration Specification](https://www.google.com/search?q=SPECIFICATION.md)** for details.
+## Workflow
 
-### 2\. Generate the Exam PDFs
+ExamForge is designed around a **unified, config-driven workflow** orchestrated by the provided `Makefile`.
 
-Run `make` with the target PDF you want to create. The Makefile will find the corresponding config file and run the entire build process automatically.
+1. **Define**
+   Create a YAML exam configuration in `configs/` (for example, `configs/EE1.yml`).
+   This file specifies:
+
+   * Header metadata (`header`)
+   * Question banks (`question_banks`)
+   * Assembly options (`assembly_options`)
+   * Selection rules (`selection`)
+   * Additional content (`content`, e.g. instructions for the student)
+
+   See [`SPECIFICATION.md`](SPECIFICATION.md) for the full schema.
+
+2. **Generate code** (`examforge`)
+   ExamForge reads the exam configuration, expands the `question_banks` glob patterns, and parses all matching question bank `.yml` files. It then generates a Haskell module:
+
+   * Module name: `Generated.Questions`
+   * Path: `generated/Generated/Questions.hs`
+   * Export: `questionPool :: [Question]` (internal representation)
+
+3. **Assemble exams** (`exam-assembler`)
+   The assembler:
+
+   * Loads the same exam configuration.
+   * Applies the `selection` rules to filter questions by tags.
+   * Uses the parameterized variants for each question and constructs an infinite stream of variants per question.
+   * For each exam version:
+
+     * Picks one variant per question (cycling through the streams).
+     * Randomly shuffles the answer options.
+   * Writes:
+
+     * LaTeX exam files: `exams/<BaseName>-NN.tex`
+     * CSV key: `exams/<BaseName>.keys.csv`
+
+   where `<BaseName>` is the basename of your config file (e.g. `EE1` for `configs/EE1.yml`).
+
+4. **Compile PDFs** (`latexmk`)
+   Finally, `latexmk` runs `lualatex` as many times as needed to produce the final PDFs.
+
+All of this is wrapped up into a small number of `make` targets.
+
+---
+
+## Using the `Makefile`
+
+The recommended way to interact with ExamForge is via the provided `Makefile`.
+
+### 1. Create an Exam Configuration File
+
+Create a new `.yml` file under `configs/` (e.g. `configs/EE1.yml`) describing your exam.
+See [`SPECIFICATION.md`](SPECIFICATION.md#1-exam-configuration-file) for the exact schema.
+
+### 2. Generate exam PDFs
+
+From the project root:
 
 ```bash
 # Build all versions of the exam defined in configs/EE1.yml
@@ -58,9 +140,15 @@ make exams/EE1-01.pdf
 make exams/EE1-01.pdf PREVIEW=yes
 ```
 
-### 3\. Generate Final Printable PDFs
+The Makefile will:
 
-The `Makefile` also provides targets for creating print-ready and collated PDFs.
+1. Run `examforge` on `configs/EE1.yml`.
+2. Run `exam-assembler` on `configs/EE1.yml`.
+3. Use `latexmk` to compile the generated `.tex` files under `exams/`.
+
+### 3. Student-ready PDFs and answer sheets
+
+Additional convenience targets:
 
 ```bash
 # Create a single, print-ready PDF for a specific version (e.g., EE1-01)
@@ -69,15 +157,45 @@ make exams/EE1-01-student.pdf
 # Create one large PDF containing all student-ready versions of the EE1 exam
 make exams/EE1-allstudents.pdf
 
-# Create one PDF containing just the answer sheets for all versions of the EE1 exam
+# Create a PDF containing just the answer sheets for all versions of the EE1 exam
 make exams/EE1-answersheets.pdf
 ```
 
+These targets are implemented in the Makefile using `qpdf`, `pdfunite`, and helper scripts under `scripts/`.
+
+---
+
+## Direct CLI usage (advanced)
+
+If you prefer not to use the `Makefile`, you can invoke the tools directly.
+
+```bash
+# 1. Generate the Haskell question pool module from a config
+cabal run examforge -- configs/EE1.yml
+
+# 2. Assemble exams for the same config (requires the generated module)
+cabal run exam-assembler -- configs/EE1.yml
+```
+
+This will:
+
+* Create `generated/Generated/Questions.hs`
+* Generate `exams/EE1-01.tex`, `exams/EE1-02.tex`, … according to `assembly_options.versions`
+* Generate `exams/EE1.keys.csv` with the correct options for each version
+
+You can then run `latexmk` manually on the `.tex` files if desired.
+
+---
+
 ## YAML Specification
 
-The project uses two types of YAML files:
+ExamForge uses **two types of YAML files**:
 
-1.  **[Exam Configuration Files](https://www.google.com/search?q=SPECIFICATION.md%23exam-configuration-file)**: High-level files that define *what* an exam is.
-2.  **[Question Template Files](https://www.google.com/search?q=SPECIFICATION.md%23question-template-file)**: Low-level files that define the *content* of the questions.
+1. **[Exam Configuration Files](SPECIFICATION.md#1-exam-configuration-file)**
+   High-level files describing the exam: metadata, question banks, assembly options, selection rules, and extra content.
 
-Please see the **[Full Specification Document](https://www.google.com/search?q=SPECIFICATION.md)** for details on both.
+2. **[Question Template Files](SPECIFICATION.md#2-question-template-file)**
+   Question-level definitions: question IDs, text, parameters, tags, and answers.
+
+The YAML format is defined normatively in [`SPECIFICATION.md`](SPECIFICATION.md).
+That document is the authoritative reference for configuration and question templates.
