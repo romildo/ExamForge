@@ -41,7 +41,7 @@ library
     , ExamForge.Generator
     , ExamForge.Formatter.Latex
     , ExamConfig
-    , ExamForge.Jupyter.Client
+    -- , ExamForge.Jupyter.Client
 
   -- Modules included in this library but not exported.
   -- other-modules:
@@ -122,15 +122,15 @@ executable exam-assembler
 
   default-language: Haskell2010
 
---------------------------------------------------------------------------------
--- Executable Stanza: Jupyter Proof of Concept
--- This program is a minimal, standalone Haskell program that acts as a Jupyter client
---------------------------------------------------------------------------------
-executable jupyter-poc
-    main-is:          Poc.hs
-    hs-source-dirs:   app
-    build-depends:    base >=4.12 && <5
-                    , ExamForge
-                    , zeromq4-haskell
-                    , pretty-show
-    default-language: Haskell2010
+-- --------------------------------------------------------------------------------
+-- -- Executable Stanza: Jupyter Proof of Concept
+-- -- This program is a minimal, standalone Haskell program that acts as a Jupyter client
+-- --------------------------------------------------------------------------------
+-- executable jupyter-poc
+--     main-is:          Poc.hs
+--     hs-source-dirs:   app
+--     build-depends:    base >=4.12 && <5
+--                     , ExamForge
+--                     , zeromq4-haskell
+--                     , pretty-show
+--     default-language: Haskell2010
