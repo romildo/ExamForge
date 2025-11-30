@@ -1,0 +1,87 @@
+- id: "cap10-let-vs-bind-erro"
+  title: |
+    Programas Interativos - Erro Comum com \haskellinline{let} e \haskellinline{<-}
+  subject: "10: Programas Interativos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-10", "io", "do-notation", "let", "bind", "erros"]
+  question: |
+    Um programador tentou escrever uma ação \haskellinline{IO} para ler o nome de um usuário e saudá-lo, mas o código a seguir não compila. Qual é a causa fundamental do erro de tipo?
+    \begin{minted}{haskell}
+    main :: IO ()
+    main = do
+        putStrLn "Qual é o seu nome?"
+        let nome = getLine
+        putStrLn ("Olá, " ++ nome)
+    \end{minted}
+  answers:
+    - correct: |
+        A linha \haskellinline{let nome = getLine} está incorreta. \haskellinline{getLine} tem o tipo \haskellinline{IO String}, então \haskellinline{nome} se torna uma ação de E/S, não uma \haskellinline{String}. O operador \haskellinline{++} não pode ser usado com um valor do tipo \haskellinline{IO String}.
+    - incorrect: |
+        A função \haskellinline{getLine} não pode ser usada dentro de um bloco \haskellinline{do} que já contém \haskellinline{putStrLn}.
+    - incorrect: |
+        A variável \haskellinline{nome} precisava de uma anotação de tipo explícita, como \haskellinline{let nome :: String = getLine}.
+    - incorrect: |
+        A palavra-chave \haskellinline{let} não pode ser usada dentro de um bloco \haskellinline{do}; apenas o operador \haskellinline{<-} é permitido.
+    - incorrect: |
+        A função \haskellinline{putStrLn} na última linha deveria ser \haskellinline{print} para poder lidar com a variável \haskellinline{nome}.
+
+- id: "cap10-io-return-valor"
+  title: |
+    Programas Interativos - Valor de Retorno de uma Ação \haskellinline{IO}
+  subject: "10: Programas Interativos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-10", "io", "do-notation", "return"]
+  question: |
+    Considere a seguinte ação \haskellinline{main} em Haskell. A função \haskellinline{return} em um contexto \haskellinline{IO} empacota um valor puro em uma ação \haskellinline{IO} sem causar nenhum efeito colateral adicional.
+    \begin{minted}{haskell}
+    main :: IO Int
+    main = do
+        putStrLn "Calculando..."
+        let x = 5
+        let y = 10
+        return (x + y)
+    \end{minted}
+    Quando este programa é compilado e executado, qual das seguintes opções descreve com precisão o que acontece?
+  answers:
+    - correct: |
+        O programa imprimirá \haskellinline{"Calculando..."} no console, e a ação \haskellinline{main} retornará um valor do tipo \haskellinline{IO Int} contendo o valor \haskellinline{15}.
+    - incorrect: |
+        O programa imprimirá \haskellinline{"Calculando..."} e depois imprimirá \haskellinline{"15"} no console.
+    - incorrect: |
+        O programa não imprimirá nada, apenas retornará o valor \haskellinline{15}.
+    - incorrect: |
+        O programa falhará na compilação porque \haskellinline{return} não pode ser a última instrução em um bloco \haskellinline{do}.
+    - incorrect: |
+        O programa imprimirá \haskellinline{"Calculando..."} e depois imprimirá \haskellinline{return 15} literalmente no console.
+
+- id: "cap10-read-runtime-error"
+  title: |
+    Programas Interativos - Erro em Tempo de Execução com \haskellinline{read}
+  subject: "10: Programas Interativos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-10", "io", "read", "erros", "funções-parciais"]
+  question: |
+    A função \haskellinline{read} é uma função parcial, o que significa que ela pode lançar um erro em tempo de execução se a string de entrada não puder ser convertida para o tipo desejado. Considere o programa abaixo:
+    \begin{minted}{haskell}
+    main :: IO ()
+    main = do
+        putStrLn "Digite um número:"
+        inputStr <- getLine
+        let numero = read inputStr :: Int
+        print (numero * 2)
+    \end{minted}
+    O que acontecerá se um usuário executar este programa e digitar a palavra "cinco" em vez de um número?
+  answers:
+    - correct: |
+        O programa irá travar e encerrar com um erro em tempo de execução (exception) na linha \haskellinline{let numero = read inputStr :: Int}.
+    - incorrect: |
+        O programa irá imprimir \haskellinline{0}, pois \haskellinline{read} retorna um valor padrão em caso de falha.
+    - incorrect: |
+        O programa não irá compilar, pois o compilador detecta que a função \haskellinline{read} pode falhar.
+    - incorrect: |
+        O programa irá imprimir a string \haskellinline{"cinco"} duas vezes: \haskellinline{\haskellinline{"cincocinco"}}.
+    - incorrect: |
+        O programa ficará esperando indefinidamente por uma entrada numérica válida.

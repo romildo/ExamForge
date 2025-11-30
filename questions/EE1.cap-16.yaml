@@ -1,0 +1,70 @@
+- id: "cap16-composicao-lambda"
+  title: "Lambda - Composição com Expressão Lambda"
+  subject: "16: Expressão Lambda"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-16", "lambda", "composição", "point-free"]
+  question: |
+    A composição de funções \haskellinline{(f . g) x} é equivalente a \haskellinline{f (g x)}. Considere a função \haskellinline{processa} abaixo, que filtra os números ímpares de uma lista e depois soma 1 a cada um deles.
+    \begin{minted}{haskell}
+    processa :: [Int] -> [Int]
+    processa xs = (map (+1) . filter odd) xs
+    \end{minted}
+    Qual das seguintes expressões lambda, quando usada no lugar de \haskellinline{(map (+1) . filter odd)}, resulta em uma função \textbf{não equivalente} a \haskellinline{processa}?
+  answers:
+    - correct: |
+        \mintinline{haskell}{\xs -> filter odd (map (+1) xs)}
+    - incorrect: |
+        \mintinline{haskell}{\xs -> map (+1) (filter odd xs)}
+    - incorrect: |
+        \mintinline{haskell}{map (+1) . (\ys -> filter odd ys)}
+    - incorrect: |
+        \mintinline{haskell}{(\f -> map (+1) . f) filter odd}
+    - incorrect: |
+        \mintinline{haskell}{let f = filter odd; g = map (+1) in g . f}
+
+- id: "cap16-secoes-vs-parcial"
+  title: "Lambda - Seções de Operador vs. Aplicação Parcial"
+  subject: "16: Expressão Lambda"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-16", "lambda", "seções", "aplicação-parcial"]
+  question: |
+    A aplicação parcial de um operador, como em \haskellinline{(subtract 5)}, e uma \emph{seção}, como em \haskellinline{(5 -)}, podem parecer similares, mas têm comportamentos distintos. A função \haskellinline{subtract} é definida como \haskellinline{subtract x y = x - y}.
+    
+    Qual é o resultado da avaliação da expressão \haskellinline{map (subtract 5) [1, 2, 3]}?
+  answers:
+    - correct: |
+        \haskellinline{[-4, -3, -2]} (equivalente a \haskellinline{map (\y -> 5 - y) [1, 2, 3]})
+    - incorrect: |
+        \haskellinline{[4, 3, 2]} (resultado de \haskellinline{map (5 -) [1, 2, 3]})
+    - incorrect: |
+        \haskellinline{[-4, -3, -2]} (resultado de \haskellinline{map ((-5) +) [1, 2, 3]})
+    - incorrect: |
+        Ocorre um erro de tipo, pois \haskellinline{subtract} não pode ser usada com \haskellinline{map}.
+    - incorrect: |
+        \haskellinline{[6, 7, 8]} (resultado de \haskellinline{map (+ 5) [1, 2, 3]})
+
+- id: "cap16-foldl-com-lambda"
+  title: |
+    Lambda - \haskellinline{foldl} com Função Anônima
+  subject: "16: Expressão Lambda"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-16", "lambda", "foldl", "hof"]
+  question: |
+    A função \haskellinline{foldl} (fold de esquerda) processa uma lista da esquerda para a direita. Sua assinatura é \haskellinline{foldl :: (b -> a -> b) -> b -> [a] -> b}. Qual é o resultado final da expressão a seguir?
+    \begin{minted}{haskell}
+    foldl (\acc x -> if even x then acc + 1 else acc) 0 [1, 2, 3, 4, 5, 6]
+    \end{minted}
+  answers:
+    - correct: |
+        \haskellinline{3} (a função lambda conta o número de elementos pares na lista)
+    - incorrect: |
+        \haskellinline{6} (o comprimento total da lista)
+    - incorrect: |
+        \haskellinline{12} (a soma dos números pares)
+    - incorrect: |
+        \haskellinline{0} (o valor inicial do acumulador)
+    - incorrect: |
+        \haskellinline{21} (a soma de todos os números da lista)

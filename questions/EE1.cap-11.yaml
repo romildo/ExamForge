@@ -1,0 +1,118 @@
+- id: "cap11-identificar-recursao-de-cauda"
+  title: "Recursividade - Identificação de Recursão de Cauda"
+  subject: "11: Funções Recursivas"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-11", "recursividade", "recursão-de-cauda", "otimizacao"]
+  question: |
+    Uma função é considerada "de cauda recursiva" se a chamada recursiva é a \textbf{última operação} executada. Isso permite que o compilador otimize a chamada para que ela não consuma espaço adicional na pilha. Qual das seguintes funções é um exemplo genuíno de recursividade de cauda?
+  answers:
+    - correct: |
+        \begin{minted}{haskell}
+        soma' :: Int -> Int -> Int
+        soma' 0 acc = acc
+        soma' n acc = soma' (n - 1) (n + acc)
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        fatorial :: Int -> Int
+        fatorial 0 = 1
+        fatorial n = n * fatorial (n - 1)
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        fib :: Int -> Int
+        fib 0 = 0
+        fib 1 = 1
+        fib n = fib (n-1) + fib (n-2)
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        comprimento :: [a] -> Int
+        comprimento [] = 0
+        comprimento (_:xs) = 1 + comprimento xs
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        map' :: (a -> b) -> [a] -> [b]
+        map' _ [] = []
+        map' f (x:xs) = f x : map' f xs
+        \end{minted}
+
+- id: "cap11-rastrear-acumulador"
+  title: "Recursividade - Rastreando o Acumulador"
+  subject: "11: Funções Recursivas"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-11", "recursividade", "recursão-de-cauda", "acumulador"]
+  question: |
+    Considere a função \haskellinline{inverte'}, que usa a técnica do acumulador para inverter uma lista de forma eficiente.
+    \begin{minted}{haskell}
+    inverte' :: [a] -> [a]
+    inverte' xs = go xs []
+      where
+        go [] acc = acc
+        go (x:xs) acc = go xs (x:acc)
+    \end{minted}
+    Ao avaliar a expressão \haskellinline{inverte' [1, 2, 3]}, qual é o valor do acumulador \haskellinline{acc} na terceira chamada recursiva à função \haskellinline{go}?
+  answers:
+    - correct: |
+        \haskellinline{[3, 2, 1]}
+    - incorrect: |
+        \haskellinline{[1, 2, 3]}
+    - incorrect: |
+        \haskellinline{[]}
+    - incorrect: |
+        \haskellinline{[2, 1]}
+    - incorrect: |
+        \haskellinline{[3]}
+
+- id: "cap11-converter-para-cauda"
+  title: "Recursividade - Conversão para Recursão de Cauda"
+  subject: "11: Funções Recursivas"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-11", "recursividade", "recursão-de-cauda", "acumulador", "refatoração"]
+  question: |
+    A função \haskellinline{replica} abaixo, que cria uma lista com \haskellinline{n} cópias de um elemento \haskellinline{x}, não é de cauda recursiva.
+    \begin{minted}{haskell}
+    replica :: Int -> a -> [a]
+    replica n x
+      | n <= 0    = []
+      | otherwise = x : replica (n - 1) x
+    \end{minted}
+    Qual das seguintes opções representa uma refatoração correta de \haskellinline{replica} para uma versão de cauda recursiva usando a técnica do acumulador?
+  answers:
+    - correct: |
+        \begin{minted}{haskell}
+        replica' n x = go n x []
+          where
+            go 0 _ acc = acc
+            go n x acc = go (n - 1) x (x:acc)
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        replica' n x acc
+          | n <= 0    = acc
+          | otherwise = x : replica' (n - 1) x acc
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        replica' n x = go n x
+          where
+            go 0 _ = []
+            go n x = go (n-1) x ++ [x]
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        replica' n x = if n <= 0
+                       then []
+                       else replica' (n - 1) x ++ [x]
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        replica' n x = go n x 0
+          where
+            go n x count | count >= n = []
+                         | otherwise  = x : go n x (count + 1)
+        \end{minted}

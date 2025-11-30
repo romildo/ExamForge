@@ -1,0 +1,70 @@
+- id: "cap08-hierarquia-erro-compilacao"
+  title: "Sobrecarga - Erro de Compilação por Hierarquia de Classes"
+  subject: "8: Sobrecarga"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-08", "sobrecarga", "typeclass", "hierarquia", "num", "fractional"]
+  question: |
+    A hierarquia de classes de tipo em Haskell estabelece que \haskellinline{Fractional} é uma subclasse de \haskellinline{Num}, mas \haskellinline{Integral} não é uma subclasse de \haskellinline{Fractional}. Sabendo disso, por que a seguinte definição de função falha na compilação?
+    \begin{minted}{haskell}
+    metade :: Int -> Int
+    metade x = x / 2
+    \end{minted}
+  answers:
+    - correct: |
+        Porque o operador \haskellinline{/} pertence à classe \haskellinline{Fractional}, mas o tipo \haskellinline{Int} é uma instância apenas de \haskellinline{Integral} (e suas superclasses), não de \haskellinline{Fractional}.
+    - incorrect: |
+        Porque a função \haskellinline{metade} deveria retornar um \haskellinline{Double} para que a divisão funcione.
+    - incorrect: |
+        Porque o literal \haskellinline{2} é inferido como \haskellinline{Integer} por padrão, que não é compatível com a divisão de \haskellinline{Int}.
+    - incorrect: |
+        Porque falta uma restrição de tipo na assinatura, que deveria ser \haskellinline{metade :: Num a => a -> a}.
+    - incorrect: |
+        Porque a divisão por \haskellinline{2} pode produzir um resultado não inteiro, violando o tipo de retorno \haskellinline{Int}.
+
+- id: "cap08-ambiguidade-show-read"
+  title: |
+    Sobrecarga - Ambiguidade com \haskellinline{show} e \haskellinline{read}
+  subject: "8: Sobrecarga"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-08", "sobrecarga", "typeclass", "ambiguidade", "read", "show"]
+  question: |
+    Considere a expressão \mintinline{haskell}{show (read "5")}. Sem qualquer anotação de tipo ou contexto adicional, por que esta expressão resulta em um erro de ambiguidade de tipo?
+  answers:
+    - correct: |
+        Porque \haskellinline{read "5"} pode ser de qualquer tipo que seja instância de \haskellinline{Read} (como \haskellinline{Int}, \haskellinline{Double}, etc.), e o compilador não tem informação suficiente para escolher uma única implementação para \haskellinline{read} (e consequentemente para \haskellinline{show}).
+    - incorrect: |
+        Porque a função \haskellinline{show} não pode ser aplicada diretamente ao resultado de \haskellinline{read}; é necessário armazenar o valor em uma variável intermediária.
+    - incorrect: |
+        Porque a string \haskellinline{"5"} não pode ser lida sem um tipo explícito, como \haskellinline{Integer} ou \haskellinline{Float}.
+    - incorrect: |
+        Porque \haskellinline{show} e \haskellinline{read} não podem ser usados na mesma expressão sem o uso do operador \haskellinline{($)}.
+    - incorrect: |
+        Porque o tipo \haskellinline{String} não é uma instância da classe \haskellinline{Num}, o que causa um conflito.
+
+- id: "cap08-instancia-minima-ord"
+  title: "Sobrecarga - Instância Mínima e Superclasses"
+  subject: "8: Sobrecarga"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-08", "sobrecarga", "typeclass", "instance", "ord", "eq"]
+  question: |
+    A classe de tipo \haskellinline{Ord} é uma subclasse de \haskellinline{Eq}. Um programador tenta criar uma instância de \haskellinline{Ord} para um tipo \haskellinline{Caixa} para poder usar a função \haskellinline{sort}, mas o compilador recusa o código. Qual é o erro fundamental na definição da instância abaixo?
+    \begin{minted}{haskell}
+    data Caixa = Caixa Int deriving (Show)
+
+    instance Ord Caixa where
+        (Caixa v1) <= (Caixa v2) = v1 <= v2
+    \end{minted}
+  answers:
+    - correct: |
+        Falta a declaração de instância para a superclasse \haskellinline{Eq}. Para um tipo ser uma instância de \haskellinline{Ord}, ele deve primeiro ser uma instância de \haskellinline{Eq}.
+    - incorrect: |
+        A derivação automática de \haskellinline{Show} (\haskellinline{deriving (Show)}) conflita com a implementação manual de \haskellinline{Ord}.
+    - incorrect: |
+        É necessário implementar todas as funções da classe \haskellinline{Ord} (\haskellinline{<}, \haskellinline{>}, \haskellinline{>=}), não apenas \haskellinline{(<=)}.
+    - incorrect: |
+        O tipo \haskellinline{Caixa} não pode ter uma instância de \haskellinline{Ord} porque contém um \haskellinline{Int}, que já é \haskellinline{Ord}.
+    - incorrect: |
+        A sintaxe correta para a instância seria \haskellinline{instance Ord (Caixa a) where ...}.

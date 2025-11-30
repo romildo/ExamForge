@@ -21,3 +21,12 @@ cabal.project.local
 cabal.project.local~
 .HTF/
 .ghc.environment.*
+
+# =======================================================
+# Rules for the ExamForge project
+# =======================================================
+
+*~
+.vscode/
+auto/
+src/Generated/Questions.hs

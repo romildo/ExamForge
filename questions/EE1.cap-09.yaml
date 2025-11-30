@@ -1,0 +1,98 @@
+- id: "cap09-guarda-nao-exaustiva"
+  title: "Condicionais - Erro de Padrão Não-Exaustivo com Guardas"
+  subject: "9: Expressão Condicional"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-09", "condicionais", "guardas", "erros", "padrões-nao-exaustivos"]
+  question: |
+    As guardas em uma definição de função são verificadas em sequência. Se nenhuma das guardas for verdadeira para uma determinada entrada e não houver uma cláusula \haskellinline{otherwise}, o programa resultará em um erro em tempo de execução.
+
+    Para qual das seguintes entradas a função \haskellinline{comparar} abaixo irá falhar com um erro de padrão não-exaustivo?
+    \begin{minted}{haskell}
+    comparar :: Int -> Int -> String
+    comparar x y | x > y = "Maior"
+                 | x < y = "Menor"
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{comparar 5 5}
+    - incorrect: |
+        \mintinline{haskell}{comparar 10 5}
+    - incorrect: |
+        \mintinline{haskell}{comparar 5 10}
+    - incorrect: |
+        \mintinline{haskell}{comparar 0 (-1)}
+    - incorrect: |
+        A função nunca falhará, pois o compilador adiciona um caso \haskellinline{otherwise} implicitamente.
+
+- id: "cap09-guardas-com-where"
+  title: "Condicionais - Avaliação com Guardas e 'where'"
+  subject: "9: Expressão Condicional"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-09", "condicionais", "guardas", "where", "escopo"]
+  question: |
+    As definições em uma cláusula \haskellinline{where} são visíveis para todas as guardas de uma equação. Analise a função \haskellinline{processa} abaixo e determine o resultado da avaliação de \haskellinline{processa 7}.
+    \begin{minted}{haskell}
+    processa :: Int -> Int
+    processa x | status == "par"   = x * 2
+               | status == "impar" = x + 1
+      where
+        status = if even x then "par" else "impar"
+    \end{minted}
+  answers:
+    - correct: |
+        \haskellinline{8}
+    - incorrect: |
+        \haskellinline{14}
+    - incorrect: |
+        \haskellinline{7}
+    - incorrect: |
+        Ocorre um erro pois \haskellinline{status} é usado antes de ser definido.
+    - incorrect: |
+        Ocorre um erro de tipo, pois não se pode comparar \haskellinline{status} com strings.
+
+- id: "cap09-equivalencia-logica-guardas"
+  title: "Condicionais - Equivalência Lógica de Guardas"
+  subject: "9: Expressão Condicional"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-09", "condicionais", "guardas", "lógica", "refatoração"]
+  question: |
+    Considere a seguinte função \haskellinline{classifica}, que possui uma guarda redundante.
+    \begin{minted}{haskell}
+    classifica :: Int -> String
+    classifica n | n > 0     = "Positivo"
+                 | n < 0     = "Negativo"
+                 | n == 0    = "Zero"
+                 | otherwise = "Impossivel"
+    \end{minted}
+    Qual das seguintes definições é funcionalmente equivalente a \haskellinline{classifica}, mas de forma mais concisa e idiomática?
+  answers:
+    - correct: |
+        \begin{minted}{haskell}
+        classifica n | n > 0     = "Positivo"
+                     | n < 0     = "Negativo"
+                     | otherwise = "Zero"
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        classifica n | n > 0     = "Positivo"
+                     | n <= 0    = "Negativo"
+                     | otherwise = "Zero"
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        classifica n | n == 0    = "Zero"
+                     | otherwise = "Positivo ou Negativo"
+        \end{minted}
+    - incorrect: |
+        \begin{minted}{haskell}
+        classifica n = if n > 0
+                       then "Positivo"
+                       else if n < 0
+                            then "Negativo"
+                            else "Impossivel"
+        \end{minted}
+    - incorrect: |
+        A função original já é a forma mais concisa e não pode ser simplificada.

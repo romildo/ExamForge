@@ -1,0 +1,105 @@
+- id: "ioGetArgs"
+  title: "IO - getArgs"
+  subject: "18: Argumentos da Linha de Comando e Arquivos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-18", "io", "getargs", "linha-de-comando"]
+  question: |
+    Um programa Haskell foi compilado para um executável chamado \mintinline{haskell}{processa}. Como ele deve ser executado no terminal para que a função \mintinline{haskell}{getArgs} retorne a lista \texttt{["arq1.txt", "--verbose"]}?
+  answers:
+    - correct: |
+        \texttt{./processa arq1.txt --verbose}
+    - incorrect: |
+        \texttt{processa ["arq1.txt", "--verbose"]}
+    - incorrect: |
+        \texttt{./processa "arq1.txt --verbose"}
+    - incorrect: |
+        \texttt{./processa < arq1.txt --verbose}
+    - incorrect: |
+        É preciso usar \mintinline{haskell}{getLine} em vez de \mintinline{haskell}{getArgs}.
+
+- id: "ioReadFileLast"
+  title: "IO - readFile e last"
+  subject: "18: Argumentos da Linha de Comando e Arquivos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-18", "io", "readfile", "last"]
+  question: |
+    Qual será a saída da ação \mintinline{haskell}{main} abaixo se o arquivo \texttt{dados.txt} contiver as três linhas a seguir?\par
+    \texttt{Alfa\textbackslash nBeta\textbackslash nGama}
+    \begin{minted}{haskell}
+    main :: IO ()
+    main = do
+        conteudo <- readFile "dados.txt"
+        let linhas = lines conteudo
+        putStrLn $ last linhas
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{"Gama"}
+    - incorrect: |
+        \mintinline{haskell}{"Alfa"}
+    - incorrect: |
+        Um erro de tipo.
+    - incorrect: |
+        \mintinline{haskell}{amaG}
+    - incorrect: |
+        \mintinline{haskell}{["Gama"]}
+
+- id: "ioReadFileSum"
+  title: "IO - readFile e Soma"
+  subject: "18: Argumentos da Linha de Comando e Arquivos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-18", "io", "readfile", "sum", "map"]
+  delimiters: { start: "|", end: "|" }
+  parameters:
+    - { numList: [10, 5, 20], fileContent: "10\\newline 5\\newline 20" }
+    - { numList: [1, 2, 3],   fileContent: "1\\newline 2\\newline 3" }
+  computations: |
+    correct = sum numList
+    concatenated = concatMap show numList
+  question: |
+    Considere o arquivo \texttt{numeros.txt} com o conteúdo abaixo. Qual será a saída do programa?
+
+    \textbf{numeros.txt:}\texttt{\newline |fileContent|}
+
+    \textbf{Programa:}
+    \begin{minted}{haskell}
+    main :: IO ()
+    main = do
+        conteudo <- readFile "numeros.txt"
+        let numeros = map read (lines conteudo) :: [Int]
+        print $ sum numeros
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{|show correct|}
+    - incorrect: |
+        \mintinline{haskell}{"|show correct|"}
+    - incorrect: |
+        \mintinline{haskell}{"|concatenated|"}
+    - incorrect: |
+        Um erro em tempo de execução.
+    - incorrect: |
+        \mintinline{haskell}{|show (sum (map (read . (:[]) . head . show) numList))|}
+
+- id: "ioThenOperator"
+  title: "IO - Operador >>"
+  subject: "18: Argumentos da Linha de Comando e Arquivos"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-18", "io", "operadores", "do-notation"]
+  question: |
+    Qual é o tipo da expressão \mintinline{haskell}{(>>)} e qual a sua finalidade em uma sequência de ações \mintinline{haskell}{do}?
+  answers:
+    - correct: |
+        Tipo: \mintinline{haskell}{IO a -> IO b -> IO b}. Finalidade: Executar em sequência, descartando o resultado da primeira.
+    - incorrect: |
+        Tipo: \mintinline{haskell}{IO a -> (a -> IO b) -> IO b}. Finalidade: Passar o resultado da primeira para a segunda.
+    - incorrect: |
+        Tipo: \mintinline{haskell}{(a -> b) -> (b -> c) -> a -> c}. Finalidade: Compor funções puras.
+    - incorrect: |
+        Tipo: \mintinline{haskell}{IO a -> IO b -> IO a}. Finalidade: Manter resultado da primeira.
+    - incorrect: |
+        Tipo: \mintinline{haskell}{IO a -> IO b -> IO (a, b)}. Finalidade: Combinar resultados.

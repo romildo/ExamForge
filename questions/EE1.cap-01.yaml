@@ -1,0 +1,105 @@
+- id: "cap01-paradigmas-aplicados"
+  title: "Paradigmas - Análise de Estilo de Código"
+  subject: "1: Paradigmas"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-01", "paradigmas", "imperativo", "declarativo", "análise-de-código"]
+  question: |
+    Considere os dois trechos de código abaixo, ambos projetados para encontrar o primeiro número par em uma lista de inteiros.
+
+    \textbf{Código A:}
+    \begin{minted}{c}
+    int encontrarPrimeiroPar(int numeros[], int tamanho) {
+        for (int i = 0; i < tamanho; ++i) {
+            if (numeros[i] % 2 == 0) {
+                return numeros[i];
+            }
+        }
+        return -1; // Valor sentinela para "não encontrado"
+    }
+    \end{minted}
+
+    \textbf{Código B:}
+    \begin{minted}{haskell}
+    encontrarPrimeiroPar :: [Int] -> Maybe Int
+    encontrarPrimeiroPar xs = find even xs
+    \end{minted}
+
+    Qual afirmação descreve com mais precisão a diferença fundamental de paradigma entre os dois códigos?
+  answers:
+    - correct: |
+        O Código A é imperativo, pois descreve o processo passo a passo (como fazer), enquanto o Código B é declarativo, focando no resultado (o que fazer).
+    - incorrect: |
+        O Código A é mais eficiente por usar um laço \haskellinline{for}, enquanto o Código B é menos eficiente por usar uma função de ordem superior.
+    - incorrect: |
+        O Código B é funcional porque usa tipagem estática com \haskellinline{Maybe Int}, enquanto o Código A não especifica um tipo de retorno para falha.
+    - incorrect: |
+        Ambos os códigos são funcionalmente equivalentes, portanto, não há diferença de paradigma, apenas de sintaxe.
+    - incorrect: |
+        O Código A é orientado a objetos porque opera sobre uma estrutura de dados (array), enquanto o Código B é procedural.
+
+- id: "cap01-qsort-modificado"
+  title: "Paradigmas - Análise do Quicksort"
+  subject: "1: Paradigmas"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-01", "paradigmas", "quicksort", "análise-de-codigo", "filter"]
+  question: |
+    Considere a implementação padrão do Quicksort em Haskell apresentada no texto. Se a condição \haskellinline{a <= x} na primeira chamada de \haskellinline{filter} (ou na compreensão de lista) for modificada para \haskellinline{a < x}, qual será o efeito no resultado da ordenação de uma lista com elementos duplicados, como \haskellinline{qsort [2, 5, 1, 3, 5]}?
+    
+    \begin{minted}{haskell}
+    -- Versão Original
+    qsort []     = []
+    qsort (x:xs) = qsort [a | a <- xs, a <= x] ++
+                   [x] ++
+                   qsort [b | b <- xs, b > x]
+
+    -- Versão Modificada
+    qsort' []     = []
+    qsort' (x:xs) = qsort' [a | a <- xs, a < x] ++
+                    [x] ++
+                    qsort' [b | b <- xs, b > x]
+    \end{minted}
+  answers:
+    - correct: |
+        A função modificada removerá todas as ocorrências duplicadas do pivô, resultando em \haskellinline{[1, 2, 3, 5]}.
+    - incorrect: |
+        O resultado permanecerá o mesmo da versão original, \haskellinline{[1, 2, 3, 5, 5]}, pois o operador \haskellinline{>} captura os elementos iguais.
+    - incorrect: |
+        A função entrará em um loop infinito, pois um dos subconjuntos recursivos nunca ficará vazio.
+    - incorrect: |
+        A função produzirá um erro de compilação, pois a alteração do operador viola uma restrição da classe de tipo \haskellinline{Ord}.
+    - incorrect: |
+        A lista resultante será \haskellinline{[1, 2, 3]}, pois ambos os elementos \haskellinline{5} serão descartados.
+
+- id: "cap01-transparencia-garantida-revised"
+  title: "Paradigmas - Garantia de Transparência Referencial"
+  subject: "1: Paradigmas"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capitulo-01", "paradigmas", "transparencia-referencial", "funcoes-puras"]
+  question: |
+    A transparência referencial é garantida quando uma função é \emph{pura}, ou seja, seu resultado depende exclusivamente de seus argumentos de entrada, sem depender de ou causar nenhum estado externo (como ler um arquivo, obter a hora do sistema, etc.).
+
+    Dadas as seguintes definições, qual delas é a única que, apenas por sua estrutura, \textbf{garante} a transparência referencial?
+  answers:
+    - correct: |
+        \mintinline{haskell}{somaQuadrados x y = (x*x) + (y*y)}
+        
+        (Função puramente matemática. Para as mesmas entradas `x` e `y`, o resultado será sempre o mesmo.)
+    - incorrect: |
+        \mintinline{haskell}{lerPrimeiraLinha = getLine}
+
+        (Viola a transparência referencial, pois seu resultado depende de uma ação externa: o que o usuário digita no console a cada execução.)
+    - incorrect: |
+        \mintinline{haskell}{horaAtual = getCurrentTime}
+
+        (Viola a transparência referencial, pois seu resultado depende do estado do relógio do sistema, que muda constantemente.)
+    - incorrect: |
+        \mintinline{haskell}{escreveLog msg = appendFile "log.txt" msg}
+
+        (Viola a transparência referencial por causar um efeito colateral: a modificação de um arquivo no sistema.)
+    - incorrect: |
+        \mintinline{haskell}{obterCotacaoDolar = acessaApiExterna "USD"}
+
+        (Não garante, pois seu resultado depende de um serviço externo (uma API na internet), cujo valor pode mudar a qualquer momento.)

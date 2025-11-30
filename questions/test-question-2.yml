@@ -1,0 +1,56 @@
+- # (Required) Unique identifier for the question.
+  id: "cap16-lambdaAninhada"
+
+  # (Required) Question title for cataloging.
+  title: "Lambda Aninhada"
+
+  # (Required) The markup language used in the templates.
+  # Supported values: "latex", "markdown".
+  format: "latex"
+
+  # (Optional) Subject/chapter for filtering.
+  subject: "16: Expressão Lambda"
+
+  # (Optional) List of tags for filtering.
+  tags:
+    - "lambda"
+    - "haskell"
+    - "função anônima"
+
+  # (Required) Defines the answer correction criteria.
+  # "any": Only one of the correct answers needs to be marked.
+  # "all": All correct answers must be marked.
+  selection_type: "any"
+
+  # (Optional) List of parameter sets to generate question variations.
+  parameters:
+    - { x: 5,  y: 3  }
+    - { x: 6,  y: 2  }
+    - { y: 5, x: 10  }
+
+  delimiters: { start: "|", end: "|" }
+
+  # (Optional) Code block for calculations.
+  computations: |
+    correct = x * 2 + y
+    distractor1 = "Erro de tipo"
+    distractor2 = x * y + 2
+    distractor3 = correct + 5
+
+  # (Required) The question's statement template.
+  question: |
+    Analise a expressão Haskell a seguir. Qual será o resultado de sua avaliação?
+    
+    \begin{minted}{haskell}
+    let f = (\x -> \y -> x * 2 + y) |show x| in f |show y|
+    \end{minted}
+
+  # (Required) List of answer choice templates.
+  answers:
+    - correct:   "\\mintinline{haskell}{|show correct|}"
+    - incorrect: |
+        |distractor1|
+    - incorrect: |
+        \\mintinline{haskell}{|show distractor2|}
+    - incorrect: |
+        \\mintinline{haskell}{|show distractor3|}

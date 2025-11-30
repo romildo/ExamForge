@@ -1,0 +1,82 @@
+- id: "cap12-analise-design-io"
+  title: "Ações de E/S Recursivas - Análise de Design"
+  subject: "12: Ações de E/S Recursivas"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-12", "io", "recursão", "design-patterns"]
+  question: |
+    O texto apresenta duas abordagens principais para ler e processar uma sequência de números: uma monolítica (onde a leitura e a soma ocorrem na mesma função recursiva) e outra com \emph{separação de responsabilidades} (uma ação lê os dados para uma lista, e uma função pura processa a lista). Qual é a principal vantagem de design da abordagem com separação de responsabilidades?
+  answers:
+    - correct: |
+        Ela aumenta a modularidade e a testabilidade, pois a lógica de processamento (ex: \haskellinline{sum}) é uma função pura que pode ser testada independentemente de qualquer E/S.
+    - incorrect: |
+        Ela é sempre mais eficiente em termos de memória, pois evita o uso de acumuladores.
+    - incorrect: |
+        Ela simplifica a lógica de E/S, tornando a ação de leitura inerentemente mais curta.
+    - incorrect: |
+        Ela é a única abordagem que permite o uso de recursividade de cauda para a leitura dos dados.
+    - incorrect: |
+        Ela elimina a necessidade de tratar entradas inválidas do usuário, como textos em vez de números.
+
+- id: "cap12-papel-do-return"
+  title: |
+    Ações de E/S Recursivas - O Papel da Função \haskellinline{return}
+  subject: "12: Ações de E/S Recursivas"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-12", "io", "recursão", "return", "monad-io"]
+  question: |
+    Na ação recursiva \haskellinline{lerLista} abaixo, a função \haskellinline{return []} é usada no caso base. Qual é o papel exato de \haskellinline{return} neste contexto?
+    \begin{minted}{haskell}
+    lerLista :: IO [Int]
+    lerLista = do
+        x <- readLn
+        if x == 0
+            then return []
+            else do
+                resto <- lerLista
+                return (x:resto)
+    \end{minted}
+  answers:
+    - correct: |
+        Ela pega o valor puro \haskellinline{[]} (uma lista vazia) e o \emph{eleva} para o tipo \haskellinline{IO [Int]}, criando uma ação que não faz nada além de produzir esse valor final, encerrando a recursão de forma tipicamente segura.
+    - incorrect: |
+        Ela imprime uma lista vazia no console e encerra o programa.
+    - incorrect: |
+        Ela sinaliza ao compilador que a recursão deve parar, funcionando como a palavra-chave \haskellinline{break} em outras linguagens.
+    - incorrect: |
+        Ela retorna a lista vazia para a chamada anterior, que então continua a execução.
+    - incorrect: |
+        Ela é uma ação de E/S que limpa o buffer de entrada antes de finalizar o programa.
+
+- id: "cap12-rastrear-acumulador-reverso"
+  title: |
+    Ações de E/S Recursivas - Rastreando Acumulador com \haskellinline{reverse}
+  subject: "12: Ações de E/S Recursivas"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-12", "io", "recursão-de-cauda", "acumulador", "reverse"]
+  question: |
+    Considere a Versão 4 do programa para ler uma sequência, que usa um acumulador para otimização de cauda e a função \haskellinline{reverse} no final.
+    \begin{minted}{haskell}
+    lerLista' :: IO [Int]
+    lerLista' = go []
+      where
+        go acc = do
+          n <- readLn
+          if n == 0
+            then return (reverse acc)
+            else go (n:acc)
+    \end{minted}
+    Se um usuário digitar os números \haskellinline{10}, \haskellinline{20}, \haskellinline{30}, e depois \haskellinline{0} (para terminar), qual será o valor final do acumulador \haskellinline{acc} imediatamente antes da função \haskellinline{reverse} ser chamada?
+  answers:
+    - correct: |
+        \haskellinline{[30, 20, 10]}
+    - incorrect: |
+        \haskellinline{[10, 20, 30]}
+    - incorrect: |
+        \haskellinline{[]}
+    - incorrect: |
+        \haskellinline{[10, 20, 30, 0]}
+    - incorrect: |
+        A função \haskellinline{reverse} é chamada a cada passo, então o valor é sempre parcial.

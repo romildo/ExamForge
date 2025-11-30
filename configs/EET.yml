@@ -1,0 +1,54 @@
+# Metadata for the PDF header
+header:
+  institution: "UFOP"
+  course: "BCC222: Programação Funcional"
+  professor: "José Romildo"
+  semester: "2025/1"
+  title: "Exame Especial Total"
+
+# Source question bank files
+question_banks:
+  - "questions/EE1.cap-01.yaml"
+  - "questions/EE1.cap-02.yaml"
+  - "questions/EE1.cap-03.yaml"
+  - "questions/EE1.cap-04.yaml"
+  - "questions/EE1.cap-05.yaml"
+  - "questions/EE1.cap-06.yaml"
+  - "questions/EE1.cap-07.yaml"
+  - "questions/EE1.cap-08.yaml"
+  - "questions/EE1.cap-09.yaml"
+  - "questions/EE1.cap-10.yaml"
+  - "questions/EE1.cap-11.yaml"
+  - "questions/EE1.cap-12.yaml"
+  - "questions/EE1.cap-13.yaml"
+  - "questions/EE1.cap-14.yaml"
+  - "questions/EE1.cap-15.yaml"
+  - "questions/EE1.cap-16.yaml"
+  - "questions/EE1.cap-17.yaml"
+  - "questions/EE1.cap-18.yaml"
+  - "questions/EE1.cap-19.yaml"
+  - "questions/EE1.cap-20.yaml"
+  - "questions/EE1.cap-21.yaml"
+  - "questions/EE1.cap-22.yaml"
+  # Add all relevant question bank files here
+
+# Options for assembling the exam versions
+assembly_options:
+  versions: 1
+  show_id: true
+  show_tags: true
+  hide_subjects: false
+
+# Criteria for selecting which questions to include
+selection:
+#  # Example: Select questions from chapters 1 to 8, excluding any tagged "wip"
+#  include_tags: "^capitulo-0[1-8]$"
+#  exclude_tags: "wip"
+#  # You can add other filters here, like 'include_id', 'exclude_subject', etc.
+
+# Content to be included in the exam body
+content:
+  instructions: |
+    - A interpretação do enunciado faz parte da avaliação.
+    - A prova deve ser feita sem consulta a qualquer material.
+    - Desligue todos os aparelhos eletrônicos.

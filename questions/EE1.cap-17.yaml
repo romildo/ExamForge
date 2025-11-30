@@ -1,0 +1,67 @@
+- id: "cap17-foldr-vs-foldl-construcao-lista"
+  title: |
+    HOF - \haskellinline{foldr} vs \haskellinline{foldl} na Construção de Listas
+  subject: "17: Funções de Ordem Superior"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-17", "hof", "foldr", "foldl", "listas"]
+  question: |
+    As funções \haskellinline{foldr} (à direita) e \haskellinline{foldl} (à esquerda) se comportam de maneira muito diferente com operadores não associativos, como o construtor de lista \haskellinline{(:)}. Qual é o resultado da avaliação da expressão \haskellinline{foldl (:) [] [1,2,3]}?
+  answers:
+    - correct: |
+        Ocorre um erro de tipo.
+    - incorrect: |
+        \haskellinline{[1, 2, 3]}
+    - incorrect: |
+        \haskellinline{[3, 2, 1]}
+    - incorrect: |
+        \haskellinline{[[1, 2, 3]]}
+    - incorrect: |
+        \haskellinline{[]}
+
+- id: "cap17-list-comprehension-para-hof"
+  title: "HOF - Refatorando List Comprehension para HOFs"
+  subject: "17: Funções de Ordem Superior"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-17", "hof", "list-comprehension", "map", "filter", "refatoração"]
+  question: |
+    As \emph{list comprehensions} são \emph{açúcar sintático} para uma combinação de funções de ordem superior. Qual das seguintes cadeias de HOFs é funcionalmente equivalente à \emph{list comprehension} abaixo?
+    \begin{minted}{haskell}
+    [x * x | x <- [1..10], odd x, x > 5]
+    \end{minted}
+  answers:
+    - correct: |
+        \haskellinline{map (^2) (filter (> 5) (filter odd [1..10]))}
+    - incorrect: |
+        \haskellinline{filter (> 5) (filter odd (map (^2) [1..10]))}
+    - incorrect: |
+        \haskellinline{map (^2) (zipWith (&&) (filter odd [1..10]) (filter (> 5) [1..10]))}
+    - incorrect: |
+        \haskellinline{filter ((> 5) . odd) (map (^2) [1..10])}
+    - incorrect: |
+        \haskellinline{map ((^2) . (> 5) . odd) [1..10]}
+
+- id: "cap17-operador-dollar-hof"
+  title: |
+    HOF - Operador \haskellinline{($)} com Funções de Ordem Superior
+  subject: "17: Funções de Ordem Superior"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-17", "hof", "operadores", "dollar"]
+  question: |
+    O operador \haskellinline{($)} é usado para aplicação de função com baixa precedência, o que ajuda a evitar parênteses. Qual é o resultado da avaliação da seguinte expressão?
+    \begin{minted}{haskell}
+    sum $ map (*2) $ filter odd [1..5]
+    \end{minted}
+  answers:
+    - correct: |
+        \haskellinline{8}
+    - incorrect: |
+        \haskellinline{18}
+    - incorrect: |
+        \haskellinline{30}
+    - incorrect: |
+        Ocorre um erro de tipo devido ao aninhamento de \haskellinline{($)}.
+    - incorrect: |
+        \haskellinline{9}

@@ -1,0 +1,162 @@
+- id: "cap16-lambdaEquivalenciaFiltro"
+  title: "Lambda - Equivalência com Filtro"
+  subject: "16: Expressão Lambda"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-16, "lambda", "filter"]
+  question: |
+    Qual expressão lambda é funcionalmente equivalente à função \mintinline{haskell}{removeMaiusculas} definida abaixo?
+    \begin{minted}{haskell}
+    import Data.Char (isUpper)
+
+    removeMaiusculas :: String -> String
+    removeMaiusculas s = filter (not . isUpper) s
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{\s -> filter (\c -> not (isUpper c)) s}
+    - incorrect: |
+        \mintinline{haskell}{\s -> map (not . isUpper) s}
+    - incorrect: |
+        \mintinline{haskell}{filter (\c -> not isUpper c)}
+    - incorrect: |
+        \mintinline{haskell}{\s -> (not . isUpper) s}
+    - incorrect: |
+        \mintinline{haskell}{\c -> filter (not (isUpper c))}
+
+- id: "cap16-lambdaAninhadaConcreta"
+  title: "Lambda - Aninhada com Valores Concretos"
+  subject: "16: Expressão Lambda"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-16", "lambda", "aninhada", "computations"]
+  delimiters: { start: "|", end: "|" }
+  parameters:
+    - { x: 5,  y: 3 }
+    - { x: 6,  y: 2 }
+    - { x: 10, y: 5 }
+  computations: |
+    correct = x * 2 + y
+  question: |
+    Analise a expressão Haskell a seguir. Qual será o resultado de sua avaliação?
+    \begin{minted}{haskell}
+    let f = (\x -> \y -> x * 2 + y) |show x| in f |show y|
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{|show correct|}
+    - incorrect: |
+        Erro de compilação
+    - incorrect: |
+        \mintinline{haskell}{|show (x + y)|}
+    - incorrect: |
+        \mintinline{haskell}{|show (x * y + 2)|}
+    - incorrect: |
+        \mintinline{haskell}{|show (correct + 5)|}
+
+- id: "cap16-lambdaFoldrFilterConcreta"
+  title: "Lambda - foldr para Filtragem"
+  subject: "16: Expressão Lambda"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-16", "lambda", "foldr", "filter"]
+  delimiters: { start: "|", end: "|" }
+  parameters:
+    - { listaStr: "[1,2,3,4,5]" }
+    - { listaStr: "[2,7,8,9,10]" }
+  computations: |
+    lista = read listaStr :: [Int]
+    correct = filter odd lista
+  question: |
+    Qual é o resultado da avaliação da seguinte expressão com \mintinline{haskell}{foldr}?
+    \begin{minted}{haskell}
+    foldr (\x acc -> if odd x then x:acc else acc) [] |listaStr|
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{|show correct|}
+    - incorrect: |
+        \mintinline{haskell}{|show (filter even lista)|}
+    - incorrect: |
+        \mintinline{haskell}{|show (reverse correct)|}
+    - incorrect: |
+        \mintinline{haskell}{|show lista|}
+    - incorrect: |
+        \mintinline{haskell}{[]}
+
+- id: "cap16-lambdaTipoInferido"
+  title: "Lambda - Tipo Inferido"
+  subject: "16: Expressão Lambda"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-16", "lambda", "tipos"]
+  question: |
+    Considere a seguinte expressão. Qual é o tipo mais geral da função \mintinline{haskell}{g}?
+    \begin{minted}{haskell}
+    g = \f x -> f (x, x)
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{((a, a) -> c) -> a -> c}
+    - incorrect: |
+        \mintinline{haskell}{f -> x -> f x x}
+    - incorrect: |
+        \mintinline{haskell}{((a, b) -> c) -> a -> c}
+    - incorrect: |
+        \mintinline{haskell}{((a, a) -> c) -> (a, a) -> c}
+    - incorrect: |
+        \mintinline{haskell}{Num a => ((a, a) -> a) -> a -> a}
+
+- id: "cap16-lambdaRefatoracaoInvalida"
+  title: "Lambda - Refatoração Inválida"
+  subject: "16: Expressão Lambda"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-16", "lambda", "refatoração"]
+  question: |
+    Qual das seguintes opções de código NÃO é uma refatoração válida da função \mintinline{haskell}{processaLista}?
+    \begin{minted}{haskell}
+    processaLista :: [Int] -> [Int]
+    processaLista xs = map (\x -> x * 2 + 1) xs
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{processaLista xs = map ((*2) . (+1)) xs}
+    - incorrect: |
+        \mintinline{haskell}{processaLista xs = map ((+1) . (*2)) xs}
+    - incorrect: |
+        \mintinline{haskell}{processaLista = map (\x -> x * 2 + 1)}
+    - incorrect: |
+        \mintinline{haskell}{processaLista xs = [y * 2 + 1 | y <- xs]}
+    - incorrect: |
+        \mintinline{haskell}{let f x = x * 2 + 1 in processaLista xs = map f xs}
+
+- id: "cap16-lambdaMapTuplaConcreta"
+  title: "Lambda - map em Tupla"
+  subject: "16: Expressão Lambda"
+  format: "latex"
+  selection_type: "any"
+  tags: ["capítulo-16", "lambda", "map", "tuplas"]
+  delimiters: { start: "|", end: "|" }
+  parameters:
+    - { listaStr: "[(1, 5), (2, 6), (3, 7)]" }
+    - { listaStr: "[(10,1), (20,2)]" }
+  computations: |
+    lista = read listaStr :: [(Int, Int)]
+    correct = map (uncurry (+)) lista
+  question: |
+    O que a seguinte expressão Haskell calcula?
+    \begin{minted}{haskell}
+    map (\(x, y) -> x + y) |listaStr|
+    \end{minted}
+  answers:
+    - correct: |
+        \mintinline{haskell}{|show correct|}
+    - incorrect: |
+        Um erro de tipo, pois \mintinline{haskell}{map} só aceita funções de um argumento.
+    - incorrect: |
+        \mintinline{haskell}{|show $ concatMap (\(x,y) -> [x,y]) lista|}
+    - incorrect: |
+        \mintinline{haskell}{|show (sum correct)|}
+    - incorrect: |
+        Uma lista de funções.
