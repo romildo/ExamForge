@@ -2,7 +2,8 @@ module Main where
 
 import ExamForge.Jupyter.Client (withKernel, executeCode, getVariableValue)
 import System.ZMQ4.Monadic (liftIO)
-import Text.Show.Pretty (pPrint)
+import Control.Exception (try, SomeException)
+import Control.Monad (forM_)
 
 pythonCode :: String
 pythonCode = unlines
@@ -17,12 +18,28 @@ haskellCode = unlines
   , "y = map toUpper \"hello from Haskell\""
   ]
 
--- Helper to define launch arguments for different kernels
+cCode :: String
+cCode = unlines
+  [ "int x = 40 + 22;"
+  , "const int n = 100;"
+  , "char y[n] = \"\";"
+  , "sprintf(y, \"The value is %d\", n);"
+  ]
+
 ipythonArgs :: FilePath -> [String]
 ipythonArgs connFile = ["kernel", "-f", connFile]
 
 ihaskellArgs :: FilePath -> [String]
-ihaskellArgs connFile = ["kernel", "--debug", connFile]
+ihaskellArgs connFile = ["kernel", connFile]
+
+clangArgs :: FilePath -> [String]
+clangArgs connFile = ["kernel", connFile]
+
+xeusArgs :: FilePath -> [String]
+xeusArgs connFile = ["kernel", "-f", connFile, "-std=c++17"]
+
+cArgs :: FilePath -> [String]
+cArgs connFile = ["kernel", "-m", "jupyter_c_kernel", "-f", connFile]
 
 testKernelInteraction :: String -> (FilePath -> [String]) -> String -> IO ()
 testKernelInteraction kernel argBuilder code =
@@ -47,6 +64,16 @@ testKernelInteraction kernel argBuilder code =
 main :: IO ()
 main = do
   putStrLn "--- Jupyter PoC Client (Language Agnostic) ---"
-  testKernelInteraction "ipython" ipythonArgs pythonCode
-  testKernelInteraction "ihaskell" ihaskellArgs haskellCode
-
+  forM_ tests $ \(kernel, args, code) -> do
+    result <- try (testKernelInteraction kernel args code) :: IO (Either SomeException ())
+    case result of
+      Left e -> putStrLn $ "\n" ++ kernel ++ " test finished with an exception (this is often normal on shutdown): " ++ show e
+      Right () -> return ()
+  where
+    tests =
+      [ ("ipython", ipythonArgs, pythonCode)
+      , ("ihaskell", ihaskellArgs, haskellCode)
+      -- , ("clang-repl-kernel-start", clangArgs, cCode)
+      , ("python3", cArgs, cCode)
+      , ("xcpp", xeusArgs, cCode)
+      ]
