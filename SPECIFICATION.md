@@ -1,6 +1,6 @@
 <!-- File: SPECIFICATION.md -->
 
-# ExamForge Specification (v3.0.1)
+# ExamForge Specification (v3.1)
 
 `ExamForge` uses two families of YAML files to control exam generation at a high-level:
 
@@ -11,16 +11,17 @@
 
 ## Scope and versioning
 
-This document is the **normative specification** of the ExamForge YAML format, version **v3.0.1**.
+This document is the **normative specification** of the ExamForge YAML format, version **v3.1**.
 
 - All configuration (`configs/*.yml`) and question template (`questions/*.yml` / `*.yaml`) files are expected to conform to this version unless otherwise stated.
 - Future changes to the YAML format are reflected by:
-  - update this document to a new version (e.g. `v3.1`),
+  - update this document to a new version (e.g. `v3.2`),
   - recording the change in `ChangeLog.md`.
 
-The current Haskell codebase is intended to be compatible with **Specification v3.0**.
+The current Haskell codebase is intended to be compatible with **Specification v3.1**.
 
 - Version **v3.0.1** improves the documentation, fixing some accidental omissions from prior updates, and changes types of values in parameters.
+- Version **v3.1** introduced the **Semantic Group Constraints** feature (`selection.semantic_group`).
 
 ---
 
@@ -113,7 +114,7 @@ If `assembly_options` is omitted entirely, the defaults above are used.
 
 #### `selection` (Object, Optional)
 
-Rules to filter which questions from the banks form the candidate pool for inclusion in the exam.
+Rules to filter which questions from the banks form the candidate pool for inclusion in the exam, and constrain semantic groups.
 
 Example:
 
@@ -124,6 +125,10 @@ selection:
     - "^set-theory$"
   exclude_tags:
     - "bonus"
+
+  semantic_group:
+    tag_pattern: "^grupo-.*$"
+    max_per_group: 1
 ```
 
 ##### `include_tags` / `exclude_tags` (List of Strings, Optional)
@@ -159,6 +164,66 @@ If, after applying all filters, no questions remain, `exam-assembler` prints a w
 > "No questions matched the filters. No exams generated."
 
 and does not produce `.tex` or `.csv` output.
+
+##### `semantic_groups` (List of Objects, Optional)
+
+Configures **semantic group constraints** on top of the basic tag filters. This allows hierarchical or multi-dimensional limits (e.g., limiting the number of questions from a broad chapter, and separately limiting questions about a specific concept).
+
+If this block is **absent** or **empty**, semantic groups are **ignored**.
+
+If this block is **present**, the assembler evaluates the rules from top to bottom. Questions are partitioned into semantic groups based on their tags, and per-variant constraints and rotation are enforced.
+
+Example:
+
+```yaml
+selection:
+  semantic_groups:
+    # 1. Specific concept constraint
+    - pattern: "^group-referential-transparency$"
+      maximum: 2
+    # 2. General chapter constraint
+    - pattern: "^chapter-01.*$"
+      maximum: 6
+
+```
+
+Fields for each rule object:
+
+* `pattern` (String, **Required**)
+  
+  A POSIX regular expression. Any question tag whose *name* matches this pattern is considered a **semantic group tag**.
+
+  If a question has **no tags** matching `tag_pattern`, it does **not** belong to any semantic group and is **unconstrained** by this feature.
+
+  Example:
+
+    * `^grupo-.*$`
+
+      Tags like `grupo-param-def`, `grupo-guarded-equations` define distinct semantic groups.
+
+* `maximum` (Integer, Optional, default: `1`)
+  
+  For each exam variant, at most this many questions from the corresponding semantic group may be selected.
+  
+  Must be `>= 1`. If the value is non-positive, configuration parsing must fail with an error.
+
+**Resolving Overlapping Tags (First-Match Rule):**
+
+Because the rules are evaluated as a list, order matters. If a single tag matches multiple `pattern` rules, the **first matching rule** dictates the `maximum` quota for that tag.
+
+**Semantic group membership:**
+
+* A **semantic group** is identified by a specific tag string (e.g., `"chapter-01-intro"`).
+* A question may belong to:
+* **0 groups** – if none of its tags match any `pattern`.
+* **1 group** – if exactly one tag matches a `pattern`.
+* **N groups** – if multiple distinct tags match patterns; all such group quotas are tracked and enforced simultaneously.
+
+**Behavior:**
+
+The assembler will rotate available questions within a semantic group across the generated exam variants. It attempts to select up to the `maximum` requested, but will naturally select fewer if the pool is exhausted or if picking further questions would violate the maximum constraints of any other overlapping semantic groups they belong to.
+
+---
 
 #### `content` (Object, Optional)
 
@@ -275,9 +340,10 @@ Each object describes one logical question, possibly parameterized into multiple
   Logical grouping for the question (a free-form category, e.g. chapter/section).  
   Used for metadata and optional printing; can be hidden with `assembly_options.hide_subjects`.
 
-* `tags` (List of Strings)
-  A list of tags used for selection and filtering (e.g. `"logic"`, `"set-theory"`, `"easy"`).
-  Defaults to `[]`.
+* `tags` (List of Strings)  
+  A list of tags used for selection, filtering (e.g. `"logic"`, `"set-theory"`, `"easy"`), and semantic grouping (e.g. `"grupo-hof-conceito"`).  
+  Defaults to `[]`.  
+  * **Semantic group tags** are **ordinary tags** whose *name* matches the configured `selection.semantic_group.tag_pattern`. There is nothing special encoded in the question file itself; all semantic-group meaning is driven by the exam configuration.
 
 
 * `parameters` (List of Objects)  
@@ -374,48 +440,53 @@ Semantics:
   * The `question` and `answers` are rendered by substituting `{{a}}`, `{{b}}`, and `{{x}}` with their evaluated values.
 * During exam assembly, these variants are folded into the variant stream for this logical question and combined with variants from other questions.
 
+
+Below is a complete example of a parameterized question leveraging the Haskell compilation step.
+
+```yaml
+- id: cap15-hof-flip-map-concreto
+  title: HOF - Combinação de map e flip
+  subject: 15: Funções de Ordem Superior
+  format: latex
+  selection_type: any
+  tags: ["capítulo-15", "hof", "grupo-hof-aplicacao"]
+  delimiters: { start: "|", end: "|" }
+  
+  parameters:
+    - { exp': "2", list: "[1, 2, 3]", wrongOp: "[2, 4, 8]" }
+    - { exp': "3", list: "[2, 3]", wrongOp: "[9, 27]" }
+    
+  computations: |
+    correct = map (flip (^) exp) list
+    
+  question: |
+    Qual será o resultado da expressão abaixo?
+    \begin{minted}{haskell}
+    map (flip (^) |show exp|) |show list|
+    \end{minted}
+    
+  answers:
+    - correct: |
+        \mintinline{haskell}{|show correct|}
+    - incorrect: |
+        \mintinline{haskell}{|show wrongOp|}
+
+```
+
+For each parameter set, `examforge` binds `exp'` and `list`, evaluates the `computations` block to find `correct`, and injects the results into the `|...|` delimiters in the question and answers.
+
 ---
 
 ## 4. Assembly algorithm (informal overview)
 
-Given:
+1. **Selection:** Filter the pool using `include_tags` and `exclude_tags`. Identify semantic groups via `tag_pattern`.
+2. **Variant streams:** For each remaining question, expand `parameters` and `computations` into a (finite) list of variants of the question. If the question is not parameterized, the list of variants will have only the original question.
+3. **Cycling & Shuffling:** Convert the finite variant list of each question into an infinite, pseudo-random stream using a cycle-and-shuffle mechanism.
+   * The list of variants are shuffled using a pseudo-random generator.
+   * The shuffled list is concatenated with a recursively shuffled continuation, giving an infinite stream with *fair* reuse.
 
-* A configuration file `configs/EE1.yml`.
-* A generated question pool `[Question]` from the question templates.
-
-The process is:
-
-1. **Selection**
-   `selection` filters the question pool using `include_tags` and `exclude_tags` (as described above).
-
-2. **Variant streams**
-   For each remaining question, ExamForge builds a (possibly finite) list of variants produced from:
-
-   * the Cartesian product of `parameters` and `computations`, and
-   * the rendered question/answer templates.
-
-3. **Cycling & shuffling**
-
-   * Each question’s finite list of variants is turned into an infinite stream using a `cycleShuffle` function:
-
-     * variants are shuffled using a pseudo-random generator,
-     * the shuffled list is concatenated with a recursively shuffled continuation, giving an infinite stream with “fair” reuse.
-   * All questions’ streams are combined position-wise so that an exam version is a list of one variant per question.
-
-4. **Versions and output**
-
-   * The number of exam versions is determined by `assembly_options.versions` (default: 1).
-   * For `N = versions`, the assembler takes the first `N` combinations from the combined stream.
-   * For each version:
-
-     * Each question’s answer choices are shuffled (again using pseudo-randomness).
-     * A LaTeX document is generated with header, optional instructions, questions, and choices.
-   * Output:
-
-     * `exams/<BaseName>-01.tex`, `exams/<BaseName>-02.tex`, …
-     * `exams/<BaseName>.keys.csv` with the sequence of correct answers for each version.
-
-The algorithm is **deterministic for a given random seed**, but the executables currently obtain their initial seed from the runtime system (`newStdGen`). Running the same configuration multiple times may thus produce different orderings of variants and answers. If strict reproducibility is needed, you should treat the generated `.tex` files as the stable artifact (e.g. commit them to version control).
+4. **Semantic Group Rotation:** Ensure that no more than `max_per_group` questions sharing a semantic group tag (e.g., `grupo-hof-aplicacao`) are selected per exam variation, rotating selections evenly across versions.
+5. **Output Generation:** For each requested exam variation, combine the selected variant streams, shuffle the answer choices, and render to LaTeX and CSV.
 
 ---
 
@@ -428,6 +499,7 @@ ExamForge enforces a number of structural and semantic invariants:
   * Missing required keys (e.g., `header`, `question_banks`, `id`, `question`, `answers`) cause parsing to fail.
   * Wrong types (e.g. `tags` not being a list) cause parsing to fail.
   * Invalid regular expressions cause assembling to fail.
+  * With impossible semantic constraints (e.g., requesting 10 questions but only 5 groups exist with `max_per_group: 1`) the assembler will hard-fail.
 * Question IDs:
 
   * The spec requires `id` to be unique across all question templates used in an exam. Duplicate IDs may result in confusing behavior and should be considered invalid, even if not yet enforced at runtime.
@@ -445,7 +517,6 @@ Users should treat all such errors as **hard failures** and fix their YAML / Has
 
 ---
 
-## 6. Informal schema summary
 ## Informal schema summary
 
 For convenience, here is an approximate Haskell-style summary of the YAML schema:
@@ -477,8 +548,14 @@ data AssemblyOptions = AssemblyOptions
   }
 
 data Selection = Selection
-  { include_tags :: [String]  -- regex patterns, default []
-  , exclude_tags :: [String]  -- regex patterns, default []
+  { include_tags    :: [String]              -- regex patterns, default []
+  , exclude_tags    :: [String]              -- regex patterns, default []
+  , semantic_groups :: [SemanticGroupRule]   -- default []
+  }
+
+data SemanticGroupRule = SemanticGroupRule
+  { pattern :: String   -- e.g. "^chapter-01.*$"
+  , maximum :: Int      -- default 1
   }
 
 data Content = Content
