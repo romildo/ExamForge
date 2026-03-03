@@ -40,7 +40,7 @@ library
     , ExamForge.Exam
     , ExamForge.Generator
     , ExamForge.Formatter.Latex
-    , ExamConfig
+    , ExamForge.ExamConfig
     -- , ExamForge.Jupyter.Client
 
   -- Modules included in this library but not exported.

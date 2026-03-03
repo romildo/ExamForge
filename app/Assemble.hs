@@ -5,7 +5,7 @@ import ExamForge.Exam
 import ExamForge.Type (SelectionType(..), QuestionTemplate(..))
 import qualified ExamForge.Formatter.Latex as LatexFormatter
 import ExamForge.Formatter.Latex (FormatterConfig(..))
-import ExamConfig
+import ExamForge.ExamConfig
 
 import System.Random (StdGen, newStdGen, mkStdGen, split, randomR)
 import System.Environment (getArgs)

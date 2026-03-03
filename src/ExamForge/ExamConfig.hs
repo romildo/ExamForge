@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module ExamConfig
+module ExamForge.ExamConfig
   ( Config(..)
   , Header(..)
   , AssemblyOptions(..)
