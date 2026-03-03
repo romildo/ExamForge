@@ -27,7 +27,7 @@ data QuestionTemplate = QuestionTemplate
   , qtSubject      :: Maybe String
   , qtTags         :: [String]
   , qtSelection    :: SelectionType
-  , qtParameters   :: [Map String Value]
+  , qtParameters   :: [Map String String]
   , qtComputations :: Maybe String
   , qtQuestion     :: String
   , qtAnswers      :: [Answer]
