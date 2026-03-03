@@ -1,50 +1,54 @@
 <!-- File: SPECIFICATION.md -->
 
-# ExamForge Specification (v3.0)
+# ExamForge Specification (v3.0.1)
 
-`ExamForge` uses two types of YAML files to manage the exam generation process:
+`ExamForge` uses two families of YAML files to control exam generation at a high-level:
 
-1. **Exam Configuration Files** – high-level files that define what an exam is, which questions it uses, and how it should be assembled.
-2. **Question Template Files** – lower-level files that define the actual content (text, parameters, answers) of individual questions.
+1. **Exam configuration files:** recipes describing the exam metadata, question banks, and selection constraints.
+2. **Question template files:** data describing parameterized questions, including their text, answers, parameters, tags, and Haskell computations.
 
 ---
 
-## 0. Scope and versioning
+## Scope and versioning
 
-This document is the **normative specification** of the ExamForge YAML format, version **v3.0**.
+This document is the **normative specification** of the ExamForge YAML format, version **v3.0.1**.
 
 - All configuration (`configs/*.yml`) and question template (`questions/*.yml` / `*.yaml`) files are expected to conform to this version unless otherwise stated.
-- Future changes to the YAML format will:
+- Future changes to the YAML format are reflected by:
   - update this document to a new version (e.g. `v3.1`),
-  - and be recorded in `ChangeLog.md`.
+  - recording the change in `ChangeLog.md`.
 
 The current Haskell codebase is intended to be compatible with **Specification v3.0**.
 
+- Version **v3.0.1** improves the documentation, fixing some accidental omissions from prior updates.
+
 ---
 
-## 1. Exam Configuration File
+## Exam Configuration File
 
 The exam configuration file is the main *recipe* for an exam. It is the single input to the `exam-assembler` executable and is also read by `examforge` to locate question banks.
 
-### 1.1 Top-Level Structure
+### Top-level structure
 
 The root of the file is a single YAML object:
 
 ```yaml
-# File: configs/EE1.yml
+# File: configs/E2.yml
 
 header: { ... }
 question_banks: [ ... ]
 assembly_options: { ... }  # Optional
 selection: { ... }         # Optional
 content: { ... }           # Optional
-````
+```
 
-### 1.2 Key reference
+### Key reference
 
 #### `header` (Object, Required)
 
 Metadata for the PDF title page and answer sheet.
+
+Fields:
 
 * `institution` (String)
 * `course` (String)
@@ -56,41 +60,44 @@ All of these fields are required.
 
 #### `question_banks` (List of Strings, Required)
 
-A list of file paths (or glob patterns) pointing to question bank YAML files.
-
-* Paths are resolved relative to the project root (as used by the `Makefile`).
-* Glob patterns are expanded using `System.FilePath.Glob.glob`.
+A list of file paths or glob patterns locating question template files. Absolute paths are supported. Relative paths are resolved relative to the project root (execution directory).
 
 Example:
 
 ```yaml
 question_banks:
-  - "questions/EE1.cap-01.yaml"
-  - "questions/EE1.cap-02.yaml"
-  - "questions/EE2.cap-*.yaml"
+  - "questions/E1.cap-01.yaml"
+  - "questions/E1.cap-02.yaml"
+  - "questions/E2.cap-*.yaml"
+  - "/alt/projects/prog-fun-haskell/exams/questions/q17-superior.yml"
 ```
 
 If the patterns match no files, `examforge` still succeeds but simply generates an empty question pool. Subsequent `exam-assembler` runs will report that no questions matched the filters.
 
 #### `assembly_options` (Object, Optional)
 
-Settings controlling how versions of the exam are assembled.
+Controls how versions of the exam are assembled and rendered.
 
-* `versions` (Int)
-  Number of distinct exam versions to generate.
-  Default: `1`. Must be a positive integer.
+* `versions` (Integer)  
+  Number of distinct exam variants to generate.  
+  Must be a positive integer.  
+  Default: `1`.
 
-* `show_id` (Bool)
-  If `true`, the question `id` is printed in the exam.
+* `show_id` (Boolean)  
+  If `true`, the question `id` is printed in the exam.  
   Default: `false`.
 
-* `show_tags` (Bool)
-  If `true`, the question `tags` are printed in the exam.
+* `show_tags` (Boolean)  
+  If `true`, the question `tags` are printed in the exam.  
   Default: `false`.
 
-* `hide_subjects` (Bool)
-  If `true`, the `subject` field is omitted from the exam.
+* `hide_subjects` (Boolean)  
+  If `true`, the `subject` field is omitted from the exam.  
   Default: `false`.
+
+* `shuffle_questions` (Boolean):  
+  Whether to shuffle the selected questions' order within the variant.  
+  Default: implementation-dependent
 
 Example:
 
@@ -106,7 +113,7 @@ If `assembly_options` is omitted entirely, the defaults above are used.
 
 #### `selection` (Object, Optional)
 
-Rules for filtering which questions from the banks are included in the exam.
+Rules to filter which questions from the banks form the candidate pool for inclusion in the exam.
 
 Example:
 
@@ -119,9 +126,9 @@ selection:
     - "bonus"
 ```
 
-Fields:
+##### `include_tags` / `exclude_tags` (List of Strings, Optional)
 
-* `include_tags` (List of Strings)
+* `include_tags` (List of Strings, Optional)
   A list of **POSIX regular expressions** (as accepted by `text-regex-tdfa`).
 
   Semantics:
@@ -130,7 +137,7 @@ Fields:
   * If `include_tags` is **empty or omitted**, all questions pass this filter.
   * If `include_tags` is **non-empty**, a question passes this filter iff **at least one** of its tags matches **at least one** of the patterns.
 
-* `exclude_tags` (List of Strings)
+* `exclude_tags` (List of Strings, Optional)
   Another list of POSIX regular expressions.
 
   Semantics:
@@ -157,7 +164,7 @@ and does not produce `.tex` or `.csv` output.
 
 Additional content to be inserted into the exam.
 
-* `instructions` (String)
+* `instructions` (String)  
   A (possibly multi-line) string of instructions printed on the title page.
   Default: `""`.
 
@@ -175,37 +182,42 @@ If `content` or `instructions` are omitted, no extra instructions are printed.
 
 ---
 
-## 2. Question Template File
+## Question Template File
+
+A question template file defines one or more logical questions, typically grouped by topic. These are the inputs consumed by `examforge` to generate a Haskell question pool.
+
+### File structure
 
 Question templates live in separate `.yml` / `.yaml` files, typically under `questions/`.
 
 A single file contains a **list** of one or more question template objects.
 
-### 2.1 File structure
-
 Example:
 
 ```yaml
-# File: questions/EE1.cap-01.yaml
+# File: questions/logic-questions.yaml
 
 - id: logic-001
-  title: Basic propositional logic
-  format: latex
-  selection_type: any
-  subject: Logic
-  tags: ["logic", "intro"]
-  parameters: [ ... ]
-  computations: |
-    let ...
-  question: |
-    ...
-  answers:
-    - correct: ...
-    - incorrect: ...
-    - incorrect: ...
+  title: "Basic propositional logic"
+  format: "latex"
+  selection_type: "any"
+  subject: "Logic"
+  tags: ["logic", "introduction", "group-prop-basics"]
   delimiters:
-    start: "{{"
+    start: "<{{"
     end: "}}"
+  parameters:
+    - { p: 1, q: 2 }
+    - { p: 3, q: 4 }
+  computations: |
+    -- Haskell code
+    result = p + q
+  question: |
+    Seja p = {{p}} e q = {{q}}. Qual é p + q?
+  answers:
+    - correct: "{{result}}"
+    - incorrect: "{{result + 1}}"
+    - incorrect: "{{result - 1}}"
 
 - id: logic-002
   ...
@@ -213,44 +225,39 @@ Example:
 
 Each item in the list is a single **Question Template Object**.
 
-### 2.2 Question Template Object
+### Question Template Object
 
 Each object describes one logical question, possibly parameterized into multiple variants.
 
 #### Required keys
 
-* `id` (String)
-  A unique identifier for the question, such as `"logic-001"`.
+* `id` (String)  
+  A unique identifier for the question, such as `"logic-001"`.  
   Uniqueness is expected across all question banks used in a given exam configuration.
 
-* `title` (String)
-  A Human-readable title or short description.
+* `title` (String)  
+  A human-readable title or short description.
 
-* `format` (String)
-  The primary output format; currently the codebase assumes `"latex"` and renders questions to LaTeX.
+* `format` (String)  
+  The primary output format. Currently the codebase assumes `"latex"` and renders questions to LaTeX.
 
-* `selection_type` (String)
+* `selection_type` (String)  
   Defines how correctness is evaluated for multiple-choice answers:
 
   * `"any"` – the question is considered correct if **at least one** of the correct options is marked, and no incorrect option is marked (typical single-answer multiple-choice).
   * `"all"` – the question is correct only if **all and only** the correct options are marked (useful for "select all that apply").
 
-  Internally this is mapped to `SelectionType`:
-
-  * `"any"` → `SelectAny`
-  * `"all"` → `SelectAll`
-
   Any other value is treated as invalid and causes YAML parsing to fail.
 
-* `question` (String)
-  The template for the question body (usually LaTeX).
+* `question` (String)  
+  The template for the question body (usually LaTeX).  
   It may contain parameter references and computed expressions (see `parameters`, `computations`, and `delimiters` below).
 
-* `answers` (List of Objects)
+* `answers` (List of Objects)  
   The answer choices. Each element of the list is an object with exactly one key:
 
-  * `correct`: String – a correct answer option.
-  * `incorrect`: String – an incorrect answer option.
+  * `correct` (String): a correct answer option.
+  * `incorrect` (String): an incorrect answer option.
 
   Example:
 
@@ -262,12 +269,10 @@ Each object describes one logical question, possibly parameterized into multiple
     - incorrect: "4"
   ```
 
-  Internally this is parsed into an `Answer` type with a Boolean flag indicating correctness.
-
 #### Optional keys
 
-* `subject` (String)
-  Logical grouping for the question (e.g. chapter/section).
+* `subject` (String)  
+  Logical grouping for the question (a free-form category, e.g. chapter/section).  
   Used for metadata and optional printing; can be hidden with `assembly_options.hide_subjects`.
 
 * `tags` (List of Strings)
@@ -290,8 +295,8 @@ Each object describes one logical question, possibly parameterized into multiple
 
   Values may be numbers, strings, or other YAML scalars; they are exposed to computations as a heterogeneous map (`Map String Value`).
 
-* `computations` (String)
-  A block of Haskell code (typically a `let` block) used to derive secondary values from parameters.
+* `computations` (String)  
+  A block of Haskell code (typically a `let` block) useful to derive secondary values from parameters.
 
   Example:
 
@@ -304,20 +309,20 @@ Each object describes one logical question, possibly parameterized into multiple
 
   This code is embedded into the generated Haskell module and must type-check in that context. Any compilation error will surface as a normal Haskell compilation error when building the generated module.
 
-* `delimiters` (Object)
+* `delimiters` (Object)  
   Custom delimiters for inline expressions in `question` and `answers`.
 
   Structure:
 
-  * `start` (String) – opening delimiter
-  * `end` (String) – closing delimiter
+  * `start` (String): opening delimiter
+  * `end` (String): closing delimiter
 
   Example:
 
   ```yaml
   delimiters:
-    start: "{{"
-    end: "}}"
+    start: "|"
+    end: "|"
   ```
 
   If absent, ExamForge uses its default delimiters (currently `{{` and `}}`). Within the question/answer text, any occurrence of:
@@ -330,7 +335,7 @@ Each object describes one logical question, possibly parameterized into multiple
 
 ---
 
-## 3. End-to-end example (parameters + computations)
+## End-to-end examples (parameters + computations)
 
 Below is a minimal but complete example of a parameterized question template using `parameters`, `computations`, and the default `{{ .. }}` delimiters.
 
@@ -415,7 +420,7 @@ The algorithm is **deterministic for a given random seed**, but the executables 
 
 ---
 
-## 5. Validation and error handling
+## Validation and error handling
 
 ExamForge enforces a number of structural and semantic invariants:
 
@@ -423,6 +428,7 @@ ExamForge enforces a number of structural and semantic invariants:
 
   * Missing required keys (e.g., `header`, `question_banks`, `id`, `question`, `answers`) cause parsing to fail.
   * Wrong types (e.g. `tags` not being a list) cause parsing to fail.
+  * Invalid regular expressions cause assembling to fail.
 * Question IDs:
 
   * The spec requires `id` to be unique across all question templates used in an exam. Duplicate IDs may result in confusing behavior and should be considered invalid, even if not yet enforced at runtime.
@@ -431,7 +437,7 @@ ExamForge enforces a number of structural and semantic invariants:
   * `selection_type` must be `"any"` or `"all"`; anything else is rejected.
 * Computations:
 
-  * Malformed Haskell code or type errors in `computations` cause the generated module to fail to compile. These appear as ordinary GHC errors.
+  * Malformed Haskell code, or type errors in `computations` cause the generated module to fail to compile. These appear as ordinary GHC errors.
 * Delimiters and expressions:
 
   * Expressions between delimiters must be valid Haskell in the context of the generated module.
@@ -441,17 +447,18 @@ Users should treat all such errors as **hard failures** and fix their YAML / Has
 ---
 
 ## 6. Informal schema summary
+## Informal schema summary
 
 For convenience, here is an approximate Haskell-style summary of the YAML schema:
 
 ```haskell
 -- Exam configuration
 data Config = Config
-  { header         :: Header
-  , question_banks :: [FilePath]        -- glob patterns allowed
-  , assembly_options :: AssemblyOptions -- defaulted if omitted
-  , selection      :: Selection         -- defaulted if omitted
-  , content        :: Content           -- defaulted if omitted
+  { header           :: Header
+  , question_banks   :: [FilePath]        -- glob patterns allowed
+  , assembly_options :: AssemblyOptions   -- defaulted if omitted
+  , selection        :: Selection         -- defaulted if omitted
+  , content          :: Content           -- defaulted if omitted
   }
 
 data Header = Header
@@ -463,10 +470,11 @@ data Header = Header
   }
 
 data AssemblyOptions = AssemblyOptions
-  { versions      :: Int    -- default 1
-  , show_id       :: Bool   -- default False
-  , show_tags     :: Bool   -- default False
-  , hide_subjects :: Bool   -- default False
+  { versions          :: Int    -- default 1
+  , show_id           :: Bool   -- default False
+  , show_tags         :: Bool   -- default False
+  , hide_subjects     :: Bool   -- default False
+  , shuffle_questions :: Bool
   }
 
 data Selection = Selection
@@ -480,17 +488,17 @@ data Content = Content
 
 -- Question template
 data QuestionTemplate = QuestionTemplate
-  { id              :: String
-  , title           :: String
-  , format          :: String            -- "latex"
-  , selection_type  :: "any" | "all"
-  , question        :: String
-  , answers         :: [AnswerSpec]
-  , subject         :: Maybe String
-  , tags            :: [String]
-  , parameters      :: [Map String Value]
-  , computations    :: Maybe String      -- Haskell code
-  , delimiters      :: Maybe { start :: String, end :: String }
+  { id             :: String
+  , title          :: String
+  , format         :: String            -- "latex"
+  , selection_type :: String            -- "any" | "all"
+  , question       :: String
+  , answers        :: [AnswerSpec]
+  , subject        :: Maybe String
+  , tags           :: [String]
+  , parameters     :: [Map String Value]
+  , computations   :: Maybe String      -- Haskell code
+  , delimiters     :: Maybe { start :: String, end :: String }
   }
 
 data AnswerSpec
@@ -498,4 +506,4 @@ data AnswerSpec
   | Incorrect String
 ```
 
-This summary is **informal** and may omit internal details, but it reflects the intended shape of the YAML documents as of Specification v3.0.
+This summary is **informal** and may omit internal details, but it reflects the intended shape of the YAML documents.
