@@ -2,7 +2,7 @@
 
 # ExamForge 🚀
 
-ExamForge is a command-line toolchain written in Haskell for generating parameterized, LaTeX-based exams from declarative YAML specifications. A single exam configuration file controls everything from the header and instructions to question selection criteria.
+ExamForge is a command-line toolchain written in Haskell for generating parameterized, LaTeX-based exams from declarative YAML specifications. A single exam configuration file controls everything from the header and instructions to question selection criteria and semantic grouping.
 
 It is designed for instructors who are comfortable with LaTeX, YAML, and basic command-line tools, and who want to produce multiple exam versions plus answer keys in a repeatable way.
 
@@ -25,7 +25,7 @@ For the normative YAML format, see [`SPECIFICATION.md`](SPECIFICATION.md).
 ExamForge is split into two distinct executables to separate the compilation of Haskell logic from the pseudo-random assembly of exam variants:
 
 1. **`examforge` (The Compiler):** Reads question bank YAML files, extracts the embedded Haskell computations (`computations`), and compiles them into a strongly-typed Haskell module (`Generated.Questions`).
-2. **`exam-assembler` (The Assembler):** Reads the exam configuration, loads the compiled question pool, applies selection filters (tags), evaluates the parameterized variants, and securely pseudo-randomizes the output to produce `.tex` documents and `.csv` answer keys.
+2. **`exam-assembler` (The Assembler):** Reads the exam configuration, loads the compiled question pool, applies selection filters (tags and semantic groups), evaluates the parameterized variants, and securely pseudo-randomizes the output to produce `.tex` documents and `.csv` answer keys.
 
 ## Features
 
@@ -37,6 +37,9 @@ ExamForge is split into two distinct executables to separate the compilation of 
 
 - **Parameterized Questions:**  
   Generate many variants of a conceptual question using parameter sets and small Haskell expressions.
+
+- **Semantic Group Rotation:**  
+  Ensure comprehensive coverage without redundancy. Group related questions by tags (e.g., `grupo-hof-conceito`) and constrain the assembler to pick at most $N$ questions from that group per exam, rotating choices fairly across versions.
 
 - **Balanced Variant Generation:**  
   Each question is expanded into an infinite stream of variants. Versions are built by cycling through these streams and shuffling answers deterministically (based on a random seed).
