@@ -20,7 +20,7 @@ This document is the **normative specification** of the ExamForge YAML format, v
 
 The current Haskell codebase is intended to be compatible with **Specification v3.0**.
 
-- Version **v3.0.1** improves the documentation, fixing some accidental omissions from prior updates.
+- Version **v3.0.1** improves the documentation, fixing some accidental omissions from prior updates, and changes types of values in parameters.
 
 ---
 
@@ -207,8 +207,8 @@ Example:
     start: "<{{"
     end: "}}"
   parameters:
-    - { p: 1, q: 2 }
-    - { p: 3, q: 4 }
+    - { p: "1", q: "2" }
+    - { p: "3", q: "4" }
   computations: |
     -- Haskell code
     result = p + q
@@ -279,21 +279,20 @@ Each object describes one logical question, possibly parameterized into multiple
   A list of tags used for selection and filtering (e.g. `"logic"`, `"set-theory"`, `"easy"`).
   Defaults to `[]`.
 
-* `parameters` (List of Objects)
-  Parameter sets used to create multiple concrete variants of the same question.
 
-  Each element is a key–value map.
+* `parameters` (List of Objects)  
+  Parameter sets used to create multiple concrete variants of the same logical question.
+
+  * Each element in the list is a key–value map.
+  * **Crucial:** All objects in the list are expected to define exactly the same keys.
+  * Values **must be strings** representing valid Haskell expressions (e.g., `"173"`, `"[1, 2, 3]"`, `"\"Patrick\""`). 
+  * These keys are bound as Haskell variables in the generated code. They are exposed directly to the `computations` block, and can be interpolated into the `question` and `answers` strings using the configured delimiters.
 
   Example:
-
   ```yaml
   parameters:
-    - { a: 2, b: 3 }
-    - { a: 4, b: -1 }
-    - { a: 5, b: 0 }
-  ```
-
-  Values may be numbers, strings, or other YAML scalars; they are exposed to computations as a heterogeneous map (`Map String Value`).
+    - { altura: "173", peso: "67.5", nome: "\"Patrick\"" }
+    - { altura: "180", peso: "86.0", nome: "\"Mary\"" }
 
 * `computations` (String)  
   A block of Haskell code (typically a `let` block) useful to derive secondary values from parameters.
@@ -348,8 +347,8 @@ Below is a minimal but complete example of a parameterized question template usi
   tags: ["algebra", "equations"]
 
   parameters:
-    - { a: 2, b: 3 }
-    - { a: 4, b: -1 }
+    - { a: "2", b: "3" }
+    - { a: "4", b: "-1" }
 
   computations: |
     let
@@ -496,7 +495,7 @@ data QuestionTemplate = QuestionTemplate
   , answers        :: [AnswerSpec]
   , subject        :: Maybe String
   , tags           :: [String]
-  , parameters     :: [Map String Value]
+  , parameters     :: [Map String String]
   , computations   :: Maybe String      -- Haskell code
   , delimiters     :: Maybe { start :: String, end :: String }
   }
