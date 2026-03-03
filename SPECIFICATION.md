@@ -97,7 +97,7 @@ Controls how versions of the exam are assembled and rendered.
 
 * `shuffle_questions` (Boolean):  
   Whether to shuffle the selected questions' order within the variant.  
-  Default: implementation-dependent
+  Default: `true`
 
 Example:
 
