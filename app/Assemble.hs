@@ -7,7 +7,7 @@ import qualified ExamForge.Formatter.Latex as LatexFormatter
 import ExamForge.Formatter.Latex (FormatterConfig(..))
 import ExamConfig
 
-import System.Random (StdGen, newStdGen, split, randomR)
+import System.Random (StdGen, newStdGen, mkStdGen, split, randomR)
 import System.Environment (getArgs)
 import System.Exit (exitFailure)
 import System.FilePath ((</>), takeBaseName) -- Import takeBaseName
@@ -69,7 +69,8 @@ assembleExams baseName config filteredQuestions
             , showSubject = not (hide_subjects (assembly_options config))
             }
 
-      initialGen <- newStdGen
+      let seed = 20252
+      let initialGen = mkStdGen seed
       let (genForStreams, genForShuffling) = split initialGen
       let gens = unfoldr (Just . split) genForStreams
       let allVariants = map qVariants filteredQuestions
