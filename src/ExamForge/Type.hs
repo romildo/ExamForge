@@ -10,7 +10,7 @@ import Data.Map (Map)
 data SelectionType
   = SelectAny -- Corresponds to "any" in YAML
   | SelectAll -- Corresponds to "all" in YAML
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 -- Represents a single answer choice, flagging it as either correct or incorrect.
 data Answer

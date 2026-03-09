@@ -114,7 +114,9 @@ executable exam-assembler
     regex-tdfa,
     directory,
     filepath,
-    pretty-show
+    containers,
+    pretty-show,
+    pretty-simple
 
   hs-source-dirs:
     app,

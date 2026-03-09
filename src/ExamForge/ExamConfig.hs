@@ -1,3 +1,5 @@
+-- File: ExamForge/ExamConfig.hs
+
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -5,6 +7,7 @@ module ExamForge.ExamConfig
   ( Config(..)
   , Header(..)
   , AssemblyOptions(..)
+  , SemanticGroupRule(..)
   , Selection(..)
   , Content(..)
   , loadConfig
@@ -12,6 +15,7 @@ module ExamForge.ExamConfig
 
 import Data.Yaml
 import GHC.Generics
+import Control.Monad (when)
 
 -- | Corresponds to the 'header' section of the YAML file.
 data Header = Header
@@ -30,6 +34,7 @@ data AssemblyOptions = AssemblyOptions
   , show_id :: Bool
   , show_tags :: Bool
   , hide_subjects :: Bool
+  , shuffle_questions :: Bool
   } deriving (Show, Generic)
 
 -- | Default values for AssemblyOptions.
@@ -39,29 +44,45 @@ defaultAssemblyOptions = AssemblyOptions
   , show_id = False
   , show_tags = False
   , hide_subjects = False
+  , shuffle_questions = True
   }
 
 instance FromJSON AssemblyOptions where
   parseJSON = withObject "AssemblyOptions" $ \v -> AssemblyOptions
-    <$> v .:? "versions" .!= versions defaultAssemblyOptions
-    <*> v .:? "show_id" .!= show_id defaultAssemblyOptions
-    <*> v .:? "show_tags" .!= show_tags defaultAssemblyOptions
-    <*> v .:? "hide_subjects" .!= hide_subjects defaultAssemblyOptions
+    <$> v .:? "versions"          .!= versions defaultAssemblyOptions
+    <*> v .:? "show_id"           .!= show_id defaultAssemblyOptions
+    <*> v .:? "show_tags"         .!= show_tags defaultAssemblyOptions
+    <*> v .:? "hide_subjects"     .!= hide_subjects defaultAssemblyOptions
+    <*> v .:? "shuffle_questions" .!= shuffle_questions defaultAssemblyOptions
+
+-- | Corresponds to the 'semantic_group' section within 'selection'.
+data SemanticGroupRule = SemanticGroupRule
+  { tag_pattern :: String
+  , maximum_qs :: Int
+  } deriving (Show, Generic)
+
+instance FromJSON SemanticGroupRule where
+  parseJSON = withObject "SemanticGroupRule" $ \v -> do
+    pattern <- v .: "pattern"
+    maxQs <- v .:? "maximum" .!= 1
+    when (maxQs < 1) $ fail "maximum must be >= 1"
+    pure $ SemanticGroupRule pattern maxQs
 
 -- | Corresponds to the 'selection' section.
 data Selection = Selection
   { include_tags :: [String]
   , exclude_tags :: [String]
+  , semantic_groups :: [SemanticGroupRule]
   } deriving (Show, Generic)
 
--- | Default values for Selection.
 defaultSelection :: Selection
-defaultSelection = Selection { include_tags = [], exclude_tags = [] }
+defaultSelection = Selection [] [] []
 
 instance FromJSON Selection where
   parseJSON = withObject "Selection" $ \v -> Selection
-    <$> v .:? "include_tags" .!= include_tags defaultSelection
-    <*> v .:? "exclude_tags" .!= exclude_tags defaultSelection
+    <$> v .:? "include_tags"   .!= include_tags defaultSelection
+    <*> v .:? "exclude_tags"   .!= exclude_tags defaultSelection
+    <*> v .:? "semantic_groups" .!= semantic_groups defaultSelection
 
 -- | Corresponds to the 'content' section.
 data Content = Content

@@ -17,4 +17,4 @@ data Question = Question
   , qTags          :: [String]
   , qSelectionType :: SelectionType
   , qVariants      :: [Variant]
-  } deriving (Show, Eq)
+  } deriving (Show, Eq, Ord)
