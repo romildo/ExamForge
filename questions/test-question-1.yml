@@ -1,8 +1,8 @@
-- id: "test-001"
+- id: "q1"
   title: "Simple Test"
-  format: "markdown"
+  format: "latex"
   selection_type: "any"
-  question: "What is 2 + 2?"
+  question: "001. What is 2 + 2?"
   answers:
     - correct: |
         4
@@ -10,3 +10,100 @@
         3
     - incorrect: |
         5
+
+- id: "q2"
+  title: "Another Test"
+  tags: ["wip", "g.a"]
+  format: "latex"
+  selection_type: "any"
+  question: "002. What is this test?"
+  answers:
+    - correct: |
+        1
+    - incorrect: |
+        2
+    - incorrect: |
+        3
+
+- id: "q3"
+  title: "Another Test"
+  tags: ["g.a"]
+  format: "latex"
+  selection_type: "any"
+  question: "003. What is this test?"
+  answers:
+    - correct: |
+        1
+    - incorrect: |
+        2
+    - incorrect: |
+        3
+
+- id: "q4"
+  title: "Test this one"
+  tags: ["g.a"]
+  format: "latex"
+  selection_type: "any"
+  parameters:
+    - { x: "1", y: "2" }
+    - { x: "3", y: "4" }
+    - { x: "5", y: "6" }
+  question: "004. Here should be a question."
+  answers:
+    - correct: |
+        x: {{show x}}
+    - incorrect: |
+        y: {{show y}}
+    - incorrect: |
+        x+y: {{show (x+y)}}
+
+- id: "q5"
+  title: "Test this one"
+  tags: ["g.a"]
+  format: "latex"
+  selection_type: "any"
+  parameters:
+    - { x: "1", y: "2", z: "3" }
+    - { x: "10", y: "20", z: "30" }
+  question: "005. What is the result of ${{show x}} + {{show y}} + {{show z}}$?"
+  answers:
+    - correct: |
+        {{show (x+y+z)}}
+    - incorrect: |
+        {{show (x+y)}}
+    - incorrect: |
+        {{show (x-y)}}
+
+- id: "q6"
+  title: "Test this one"
+  tags: ["g.b"]
+  format: "latex"
+  selection_type: "any"
+  parameters:
+    - { x: "10", y: "200", z: "300" }
+    - { x: "20", y: "300", z: "400" }
+  question: "006. Guess the answer:"
+  answers:
+    - correct: |
+        x: {{show x}}
+    - incorrect: |
+        y: {{show x}}
+    - incorrect: |
+        z: {{show x}}
+
+- id: "q7"
+  title: "Test this one"
+  tags: ["g.c"]
+  format: "latex"
+  selection_type: "any"
+  parameters:
+    - { x: "-10", y: "-200", z: "-300" }
+    - { x: "-20", y: "-300", z: "-400" }
+  question: "007. Guess another answer:"
+  answers:
+    - correct: |
+        x: {{show x}}
+    - incorrect: |
+        y: {{show x}}
+    - incorrect: |
+        z: {{show x}}

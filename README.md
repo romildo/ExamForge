@@ -2,7 +2,7 @@
 
 # ExamForge 🚀
 
-ExamForge is a command-line toolchain written in Haskell for generating parameterized, LaTeX-based exams from declarative YAML specifications. A single exam configuration file controls everything from the header and instructions to question selection criteria.
+ExamForge is a command-line toolchain written in Haskell for generating parameterized, LaTeX-based exams from declarative YAML specifications. A single exam configuration file controls everything from the header and instructions to question selection criteria and semantic grouping.
 
 It is designed for instructors who are comfortable with LaTeX, YAML, and basic command-line tools, and who want to produce multiple exam versions plus answer keys in a repeatable way.
 
@@ -12,7 +12,7 @@ It is designed for instructors who are comfortable with LaTeX, YAML, and basic c
 
 ExamForge is currently **pre-1.0** and under active development.
 
-- The YAML specification is versioned (current: **Specification v3.0**).
+- The YAML specification is versioned (current: **Specification v3.0.1**).
 - CLI behavior and internal implementation may change.
 - Changes to the tools and the specification will be recorded in `ChangeLog.md`.
 
@@ -20,21 +20,31 @@ For the normative YAML format, see [`SPECIFICATION.md`](SPECIFICATION.md).
 
 ---
 
+## Architecture & System Boundaries
+
+ExamForge is split into two distinct executables to separate the compilation of Haskell logic from the pseudo-random assembly of exam variants:
+
+1. **`examforge` (The Compiler):** Reads question bank YAML files, extracts the embedded Haskell computations (`computations`), and compiles them into a strongly-typed Haskell module (`Generated.Questions`).
+2. **`exam-assembler` (The Assembler):** Reads the exam configuration, loads the compiled question pool, applies selection filters (tags and semantic groups), evaluates the parameterized variants, and securely pseudo-randomizes the output to produce `.tex` documents and `.csv` answer keys.
+
 ## Features
 
-- **Declarative Exam Configuration**  
-  Define entire exams in YAML: metadata, question bank locations, assembly options, and selection rules.
+- **Declarative Exam Configuration:**  
+  Define metadata, question bank locations, assembly options, and selection rules in a single YAML file.
 
-- **Flexible Question Specification**  
+- **Flexible Question Specification:**  
   Define questions, parameters, tags, and computational logic in separate, human-readable YAML files.
 
-- **Parameterized Questions**  
+- **Parameterized Questions:**  
   Generate many variants of a conceptual question using parameter sets and small Haskell expressions.
 
-- **Balanced Variant Generation**  
-  Each question is expanded into an infinite stream of variants, and versions are built by cycling through these streams and shuffling answers. The selection/shuffling algorithm is deterministic *given a random seed*; the current executables may obtain their seed from the runtime system.
+- **Semantic Group Rotation:**  
+  Ensure comprehensive coverage without redundancy. Group related questions by tags (e.g., `grupo-hof-conceito`) and constrain the assembler to pick at most $N$ questions from that group per exam, rotating choices fairly across versions.
 
-- **PDF & LaTeX Output**  
+- **Balanced Variant Generation:**  
+  Each question is expanded into an infinite stream of variants. Versions are built by cycling through these streams and shuffling answers deterministically (based on a random seed).
+
+- **PDF & LaTeX Output:**  
   Produces `.tex` sources and final `.pdf` files using `latexmk`/`lualatex`, including student-ready versions and answer-sheets-only PDFs.
 
 - **CSV Answer Key**  
@@ -47,10 +57,9 @@ For the normative YAML format, see [`SPECIFICATION.md`](SPECIFICATION.md).
 ### 1. Install prerequisites
 
 You’ll need:
-
-- [GHC (Glasgow Haskell Compiler)](https://www.haskell.org/ghc/)
+- [GHC (Glasgow Haskell Compiler)](https://www.haskell.org/ghc/) (9.4+)
 - [Cabal](https://www.haskell.org/cabal/)
-- A TeX distribution with `lualatex` and `latexmk` (e.g. TeX Live)
+- A TeX distribution with `lualatex` and `latexmk` (e.g., TeX Live)
 - PDF utilities:
   - `qpdf`
   - `pdfunite` (usually from `poppler-utils`)
@@ -63,7 +72,7 @@ From the project root:
 
 ```bash
 cabal build
-````
+```
 
 This builds two executables:
 
@@ -133,7 +142,7 @@ See [`SPECIFICATION.md`](SPECIFICATION.md#1-exam-configuration-file) for the exa
 From the project root:
 
 ```bash
-# Build all versions of the exam defined in configs/EE1.yml
+# Build a specific version of the exam (generates code, assembles, and compiles LaTeX)
 make exams/EE1-01.pdf
 
 # Build and then open the first version for preview
@@ -157,7 +166,7 @@ make exams/EE1-01-student.pdf
 # Create one large PDF containing all student-ready versions of the EE1 exam
 make exams/EE1-allstudents.pdf
 
-# Create a PDF containing just the answer sheets for all versions of the EE1 exam
+# Create a PDF containing just the answer sheets for grading for all versions of the EE1 exam
 make exams/EE1-answersheets.pdf
 ```
 
@@ -173,7 +182,7 @@ If you prefer not to use the `Makefile`, you can invoke the tools directly.
 # 1. Generate the Haskell question pool module from a config
 cabal run examforge -- configs/EE1.yml
 
-# 2. Assemble exams for the same config (requires the generated module)
+# 2. Assemble exams (`.tex` and `.csv`) for the same config (requires the generated module)
 cabal run exam-assembler -- configs/EE1.yml
 ```
 
@@ -183,7 +192,7 @@ This will:
 * Generate `exams/EE1-01.tex`, `exams/EE1-02.tex`, … according to `assembly_options.versions`
 * Generate `exams/EE1.keys.csv` with the correct options for each version
 
-You can then run `latexmk` manually on the `.tex` files if desired.
+You can then run `latexmk -lualatex exams/EE1-01.tex` manually on the `.tex` files if desired.
 
 ---
 
@@ -199,3 +208,15 @@ ExamForge uses **two types of YAML files**:
 
 The YAML format is defined normatively in [`SPECIFICATION.md`](SPECIFICATION.md).
 That document is the authoritative reference for configuration and question templates.
+
+---
+
+## Development & Testing
+
+If you are modifying ExamForge's selection algorithms or developing new constraint features, you can use the bundled mock generator to create large synthetic datasets:
+
+```bash
+cabal run examforge-mockgen -- --help
+```
+
+For more details on generating load-test data, see [`MOCKGEN.md`](https://www.google.com/search?q=MOCKGEN.md).

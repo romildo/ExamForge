@@ -2,7 +2,7 @@ module ExamForge.Formatter.Latex where
 
 import ExamForge.Exam (Question(..), Variant)
 import ExamForge.Type (SelectionType(..))
-import ExamConfig (Header(..)) -- Import the Header type
+import ExamForge.ExamConfig (Header(..)) -- Import the Header type
 
 import Data.List (findIndex, intercalate, sort)
 import Data.Maybe (fromMaybe)

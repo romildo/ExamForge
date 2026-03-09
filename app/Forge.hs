@@ -3,7 +3,7 @@ module Main where
 import ExamForge.Type (QuestionTemplate)
 import ExamForge.Parser () -- <--- ADDED THIS LINE to bring the instance into scope
 import ExamForge.Generator (generateQuestionsModule)
-import ExamConfig (loadConfig, question_banks)
+import ExamForge.ExamConfig (loadConfig, question_banks)
 import System.FilePath.Glob (glob)
 
 import Data.Yaml (decodeFileEither, ParseException, prettyPrintParseException)

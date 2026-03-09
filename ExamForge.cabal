@@ -40,7 +40,7 @@ library
     , ExamForge.Exam
     , ExamForge.Generator
     , ExamForge.Formatter.Latex
-    , ExamConfig
+    , ExamForge.ExamConfig
     -- , ExamForge.Jupyter.Client
 
   -- Modules included in this library but not exported.
@@ -114,13 +114,32 @@ executable exam-assembler
     regex-tdfa,
     directory,
     filepath,
-    pretty-show
+    containers,
+    pretty-show,
+    pretty-simple
 
   hs-source-dirs:
     app,
     generated
 
   default-language: Haskell2010
+
+--------------------------------------------------------------------------------
+-- Executable Stanza: MockGen
+-- This program generate a question bank and an exam configuration for testing purposes
+--------------------------------------------------------------------------------
+
+executable examforge-mockgen
+  main-is:          MockGen.hs
+  hs-source-dirs:   app
+  default-language: Haskell2010
+  ghc-options:      -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >= 4.14 && < 5
+    , aeson
+    , yaml
+    , random
+    , optparse-applicative
 
 -- --------------------------------------------------------------------------------
 -- -- Executable Stanza: Jupyter Proof of Concept
