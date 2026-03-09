@@ -80,9 +80,9 @@ main = do
   let (bankValue, _) = generateBank gen (optGroupPrefix opts) (optNumQuestions opts) (optNumGroups opts)
   Yaml.encodeFile (optBankOut opts) bankValue
   putStrLn $ "Wrote question bank to: " ++ optBankOut opts
-  
+
   putStrLn "Generating mock exam config..."
-  let configValue = generateConfig (optBankOut opts) (optGroupPrefix opts) (optVersions opts) (optMaxPerGroup opts)
+  let configValue = generateConfig (optBankOut opts) (optGroupPrefix opts) (optVersions opts) (optMaxPerGroup opts) (optSeed opts)
   Yaml.encodeFile (optConfigOut opts) configValue
   putStrLn $ "Wrote exam config to: " ++ optConfigOut opts
 
@@ -129,8 +129,8 @@ generateBank gen prefix numQs numGrps =
     (toJSON (reverse qObjs), finalGen)
 
 -- | Generates the YAML Value for the exam config.
-generateConfig :: FilePath -> String -> Int -> Int -> Value
-generateConfig bankFile prefix numVersions maxPerGroup =
+generateConfig :: FilePath -> String -> Int -> Int -> Int -> Value
+generateConfig bankFile prefix numVersions maxPerGroup examSeed =
   object
     [ "header" .= object
         [ "institution" .= ("Mock University" :: String)
@@ -145,11 +145,14 @@ generateConfig bankFile prefix numVersions maxPerGroup =
         , "show_id" .= True
         , "show_tags" .= True
         , "shuffle_questions" .= True
+        , "seed" .= examSeed
         ]
     , "selection" .= object
-        [ "semantic_group" .= object
-            [ "tag_pattern" .= ("^" ++ prefix ++ ".*$")
-            , "max_per_group" .= maxPerGroup
+        [ "semantic_groups" .= 
+            [ object
+                [ "pattern" .= ("^" ++ prefix ++ ".*$")
+                , "maximum" .= maxPerGroup
+                ]
             ]
         ]
     ]

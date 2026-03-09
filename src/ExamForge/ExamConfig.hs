@@ -1,4 +1,4 @@
--- File: ExamForge/ExamConfig.hs
+-- File: src/ExamForge/ExamConfig.hs
 
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -30,21 +30,23 @@ instance FromJSON Header
 
 -- | Corresponds to the 'assembly_options' section.
 data AssemblyOptions = AssemblyOptions
-  { versions :: Int
-  , show_id :: Bool
-  , show_tags :: Bool
-  , hide_subjects :: Bool
+  { versions          :: Int
+  , show_id           :: Bool
+  , show_tags         :: Bool
+  , hide_subjects     :: Bool
   , shuffle_questions :: Bool
+  , seed              :: Maybe Int  -- Optional random seed
   } deriving (Show, Generic)
 
 -- | Default values for AssemblyOptions.
 defaultAssemblyOptions :: AssemblyOptions
 defaultAssemblyOptions = AssemblyOptions
-  { versions = 1
-  , show_id = False
-  , show_tags = False
-  , hide_subjects = False
+  { versions          = 1
+  , show_id           = False
+  , show_tags         = False
+  , hide_subjects     = False
   , shuffle_questions = True
+  , seed              = Nothing     -- Default to Nothing
   }
 
 instance FromJSON AssemblyOptions where
@@ -54,6 +56,7 @@ instance FromJSON AssemblyOptions where
     <*> v .:? "show_tags"         .!= show_tags defaultAssemblyOptions
     <*> v .:? "hide_subjects"     .!= hide_subjects defaultAssemblyOptions
     <*> v .:? "shuffle_questions" .!= shuffle_questions defaultAssemblyOptions
+    <*> v .:? "seed"              .!= seed defaultAssemblyOptions
 
 -- | Corresponds to the 'semantic_group' section within 'selection'.
 data SemanticGroupRule = SemanticGroupRule
