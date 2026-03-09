@@ -100,6 +100,11 @@ Controls how versions of the exam are assembled and rendered.
   Whether to shuffle the selected questions' order within the variant.  
   Default: `true`
 
+* `seed` (Integer, Optional)  
+  A specific integer used to initialize the pseudo-random number generator for variant selection and shuffling.  
+  If provided, assembling the exam with the same configuration will deterministically produce the exact same variants and choices.  
+  If omitted, the assembler uses a default deterministic seed (or a system-generated random seed, depending on your implementation choice).
+
 Example:
 
 ```yaml
@@ -108,6 +113,8 @@ assembly_options:
   show_id: false
   show_tags: false
   hide_subjects: true
+  shuffle_questions: false
+  seed: 20261
 ```
 
 If `assembly_options` is omitted entirely, the defaults above are used.

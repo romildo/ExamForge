@@ -185,8 +185,20 @@ assembleExams baseName config filteredQuestions
             }
 
       -- Initialize Pseudo-Random Generators
-      let seed = 20252
-      let initialGen = mkStdGen seed
+      actualSeed <- case seed (assembly_options config) of
+        Just s  -> do
+          putStrLn $ "Using configured random seed: " ++ show s
+          return s
+        Nothing -> do
+          let fallback = 20252
+          putStrLn $ "No seed configured. Using default deterministic seed: " ++ show fallback
+          return fallback
+          -- Alternative for non-deterministic fallback:
+          -- s <- randomIO :: IO Int
+          -- putStrLn $ "No seed configured. Using random system seed: " ++ show s
+          -- return s
+
+      let initialGen = mkStdGen actualSeed
       let (genGroups, genRest) = split initialGen
       let (genVariants, genShuffle) = split genRest
 
