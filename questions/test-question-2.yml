@@ -24,9 +24,9 @@
 
   # (Optional) List of parameter sets to generate question variations.
   parameters:
-    - { x: 5,  y: 3  }
-    - { x: 6,  y: 2  }
-    - { y: 5, x: 10  }
+    - { x: "5", y: "3"  }
+    - { x: "6", y: "2"  }
+    - { y: "5", x: "10"  }
 
   delimiters: { start: "|", end: "|" }
 
