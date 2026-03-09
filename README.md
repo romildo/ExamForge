@@ -208,3 +208,15 @@ ExamForge uses **two types of YAML files**:
 
 The YAML format is defined normatively in [`SPECIFICATION.md`](SPECIFICATION.md).
 That document is the authoritative reference for configuration and question templates.
+
+---
+
+## Development & Testing
+
+If you are modifying ExamForge's selection algorithms or developing new constraint features, you can use the bundled mock generator to create large synthetic datasets:
+
+```bash
+cabal run examforge-mockgen -- --help
+```
+
+For more details on generating load-test data, see [`MOCKGEN.md`](https://www.google.com/search?q=MOCKGEN.md).
