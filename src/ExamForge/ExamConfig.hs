@@ -30,33 +30,36 @@ instance FromJSON Header
 
 -- | Corresponds to the 'assembly_options' section.
 data AssemblyOptions = AssemblyOptions
-  { versions          :: Int
-  , show_id           :: Bool
-  , show_tags         :: Bool
-  , hide_subjects     :: Bool
-  , shuffle_questions :: Bool
-  , seed              :: Maybe Int  -- Optional random seed
+  { versions            :: Int
+  , show_id             :: Bool
+  , show_tags           :: Bool
+  , hide_subjects       :: Bool
+  , shuffle_questions   :: Bool
+  , seed                :: Maybe Int -- Optional random seed
+  , registration_digits :: Maybe Int -- Optional field for OMR grid
   } deriving (Show, Generic)
 
 -- | Default values for AssemblyOptions.
 defaultAssemblyOptions :: AssemblyOptions
 defaultAssemblyOptions = AssemblyOptions
-  { versions          = 1
-  , show_id           = False
-  , show_tags         = False
-  , hide_subjects     = False
-  , shuffle_questions = True
-  , seed              = Nothing     -- Default to Nothing
+  { versions            = 1
+  , show_id             = False
+  , show_tags           = False
+  , hide_subjects       = False
+  , shuffle_questions   = True
+  , seed                = Nothing
+  , registration_digits = Nothing -- Default to no grid
   }
 
 instance FromJSON AssemblyOptions where
   parseJSON = withObject "AssemblyOptions" $ \v -> AssemblyOptions
-    <$> v .:? "versions"          .!= versions defaultAssemblyOptions
-    <*> v .:? "show_id"           .!= show_id defaultAssemblyOptions
-    <*> v .:? "show_tags"         .!= show_tags defaultAssemblyOptions
-    <*> v .:? "hide_subjects"     .!= hide_subjects defaultAssemblyOptions
-    <*> v .:? "shuffle_questions" .!= shuffle_questions defaultAssemblyOptions
-    <*> v .:? "seed"              .!= seed defaultAssemblyOptions
+    <$> v .:? "versions"            .!= versions defaultAssemblyOptions
+    <*> v .:? "show_id"             .!= show_id defaultAssemblyOptions
+    <*> v .:? "show_tags"           .!= show_tags defaultAssemblyOptions
+    <*> v .:? "hide_subjects"       .!= hide_subjects defaultAssemblyOptions
+    <*> v .:? "shuffle_questions"   .!= shuffle_questions defaultAssemblyOptions
+    <*> v .:? "seed"                .!= seed defaultAssemblyOptions
+    <*> v .:? "registration_digits" .!= registration_digits defaultAssemblyOptions
 
 -- | Corresponds to the 'semantic_group' section within 'selection'.
 data SemanticGroupRule = SemanticGroupRule

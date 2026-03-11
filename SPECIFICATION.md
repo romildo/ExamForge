@@ -100,6 +100,11 @@ Controls how versions of the exam are assembled and rendered.
   Whether to shuffle the selected questions' order within the variant.  
   Default: `true`
 
+* `registration_digits` (Integer, Optional)  
+  Specifies the number of digits in a student's registration number (e.g., `7`).  
+  If provided and greater than `0`, the generated LaTeX answer sheet will include an OMR bubbling grid for the registration number and emit the `id_C_R` cell coordinates to the auxiliary `.zonas` file.  
+  If omitted or `0`, the answer sheet falls back to printing a simple fill-in-the-blank line.
+
 * `seed` (Integer, Optional)  
   A specific integer used to initialize the pseudo-random number generator for variant selection and shuffling.  
   If provided, assembling the exam with the same configuration will deterministically produce the exact same variants and choices.  

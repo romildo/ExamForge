@@ -180,9 +180,10 @@ assembleExams baseName config filteredQuestions
       let outDir = "exams"
 
       let latexConfig = FormatterConfig
-            { showId = show_id (assembly_options config)
-            , showTags = show_tags (assembly_options config)
-            , showSubject = not (hide_subjects (assembly_options config))
+            { showId             = show_id (assembly_options config)
+            , showTags           = show_tags (assembly_options config)
+            , showSubject        = not (hide_subjects (assembly_options config))
+            , registrationDigits = registration_digits (assembly_options config)
             }
 
       -- Initialize Pseudo-Random Generators
