@@ -241,14 +241,22 @@ The assembler will rotate available questions within a semantic group across the
 
 Additional content to be inserted into the exam.
 
+* `latex_preamble` (String, Optional)  
+  A block of raw LaTeX code to be injected into the document preamble (between `\usepackage{provastyle}` and `\begin{document}`).  
+  Useful for importing specific packages (e.g., `\usepackage{menukeys}`) or defining custom LaTeX macros required by specific questions in the exam.  
+  Default: `""`
+
 * `instructions` (String)  
-  A (possibly multi-line) string of instructions printed on the title page.
+  A (possibly multi-line) string of instructions printed on the title page.  
   Default: `""`.
 
 Example:
 
 ```yaml
 content:
+  latex_preamble: |
+    \usepackage{menukeys}
+    \newcommand{\mycustommacro}[1]{\textbf{#1}}
   instructions: |
     Read the questions carefully.
     No electronic devices are allowed.

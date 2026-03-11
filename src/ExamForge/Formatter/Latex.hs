@@ -16,6 +16,7 @@ data FormatterConfig = FormatterConfig
   , showTags           :: Bool
   , showSubject        :: Bool
   , registrationDigits :: Maybe Int
+  , latexPreamble      :: String
   } deriving (Show)
 
 -- | The main function that generates the complete .tex file string.
@@ -28,6 +29,7 @@ format header config version examData =
     unlines
       [ "\\documentclass[a4paper,10pt,brazil]{article}"
       , "\\usepackage{provastyle}"
+      , latexPreamble config  -- Inject the user code here
       , "\\begin{document}"
       , formatHeader header version
       , "\\begin{multicols}{2}"
