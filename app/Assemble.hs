@@ -25,22 +25,23 @@ import Debug.Pretty.Simple (pTraceShowWith, pTraceWith, pTrace, pTraceShow)
 main :: IO ()
 main = do
   args <- getArgs
-  unless (length args == 1) $ do
-    putStrLn "Usage: exam-assembler <path-to-exam-config.yml>"
-    exitFailure
-  let configFile = head args
-
-  -- Extract the basename from the config file path
-  let baseName = takeBaseName configFile
-
-  configResult <- loadConfig configFile
-  case configResult of
-    Left err -> print err >> exitFailure
-    Right config -> do
-      let filteredQuestions = filterQuestions (selection config) questionPool
-      putStrLn $ "Found " ++ show (length filteredQuestions) ++ " matching questions after tag filtering."
-      -- Pass the basename to the assembly function
-      assembleExams baseName config filteredQuestions
+  case args of
+    [configFile] -> do
+      configResult <- loadConfig configFile
+      case configResult of
+        Left err -> do
+          print err
+          exitFailure
+        Right config -> do
+          let filteredQuestions = filterQuestions (selection config) questionPool
+          putStrLn $ "Found " ++ show (length filteredQuestions) ++ " matching questions after tag filtering."
+          -- Extract the basename from the config file path
+          let baseName = takeBaseName configFile
+          -- Pass the basename to the assembly function
+          assembleExams baseName config filteredQuestions
+    _ -> do
+      putStrLn "Usage: exam-assembler <path-to-exam-config.yml>"
+      exitFailure
 
 -- | An explicit type signature for the helper function to resolve ambiguity.
 matchesAny :: [String] -> [String] -> Bool
