@@ -1,8 +1,10 @@
+-- File: src/ExamForge/Formatter/Latex.hs
+
 module ExamForge.Formatter.Latex where
 
 import ExamForge.Exam (Question(..), Variant)
 import ExamForge.Type (SelectionType(..))
-import ExamForge.ExamConfig (Header(..)) -- Import the Header type
+import ExamForge.ExamConfig (Header(..))
 
 import Data.List (findIndex, intercalate, sort)
 import Data.Maybe (fromMaybe)
@@ -10,9 +12,10 @@ import Text.Printf (printf)
 
 -- Configuration for the formatter to control metadata visibility.
 data FormatterConfig = FormatterConfig
-  { showId      :: Bool
-  , showTags    :: Bool
-  , showSubject :: Bool -- Changed from showSubject to hideSubjects in config
+  { showId             :: Bool
+  , showTags           :: Bool
+  , showSubject        :: Bool
+  , registrationDigits :: Maybe Int
   } deriving (Show)
 
 -- | The main function that generates the complete .tex file string.
@@ -20,17 +23,17 @@ format :: Header -> FormatterConfig -> Int -> [(Question, Variant)] -> String
 format header config version examData =
   let
     answerKey = map (uncurry formatCorrectAnswers) examData
+    regDigits = fromMaybe 0 (registrationDigits config)
   in
     unlines
       [ "\\documentclass[a4paper,10pt,brazil]{article}"
-      , "\\usepackage{provastyle}" -- No newline needed here
+      , "\\usepackage{provastyle}"
       , "\\begin{document}"
       , formatHeader header version
       , "\\begin{multicols}{2}"
       , formatQuestions config examData 1
       , "\\end{multicols}"
-      -- NEW: Call the new, more powerful answer sheet macro
-      , formatAnswerSheet header version (length examData)
+      , formatAnswerSheet header version (length examData) regDigits
       , formatAnswerKey version answerKey
       , "\\end{document}"
       ]
@@ -41,11 +44,11 @@ formatHeader h v =
   printf "\\makeexamtitlepage{%s}{%s}{%s}{%s}{%s}{%02d}"
     (institution h) (course h) (professor h) (semester h) (title h) v
 
--- NEW: A helper function to format the answer sheet call.
-formatAnswerSheet :: Header -> Int -> Int -> String
-formatAnswerSheet h v numQuestions =
-  printf "\\makeanswersheet{%s}{%s}{%s}{%s}{%s}{%02d}{%d}{%d}"
-    (institution h) (course h) (professor h) (semester h) (title h) v numQuestions (25::Int)
+-- | A helper function to format the answer sheet call.
+formatAnswerSheet :: Header -> Int -> Int -> Int -> String
+formatAnswerSheet h v numQuestions regDigits =
+  printf "\\makeanswersheet{%s}{%s}{%s}{%s}{%s}{%02d}{%d}{%d}{%d}"
+    (institution h) (course h) (professor h) (semester h) (title h) v numQuestions (25::Int) regDigits
 
 -- | Takes a Question and a Variant and formats the correct answer(s) as a string.
 formatCorrectAnswers :: Question -> Variant -> String

@@ -20,18 +20,21 @@ Current development state:
 
 ### Added
 
+- **OMR Registration Grid:** The LaTeX formatter and `provastyle.sty` now support generating a dynamic, machine-readable bubbling grid for student registration numbers (matrícula) on the answer sheet. It automatically emits `id_C_R` cell coordinates and page alignment markers to the `.zonas` file for automated grading.
 - **`examforge-mockgen` CLI tool:** A new application to generate random, synthetic question banks and exam configurations to stress-test constraint algorithms.
 - **Semantic Groups Implementation:** The `exam-assembler` now features a stateful constraint solver that safely rotates overlapping semantic groups across infinite variant streams without violating quotas.
 - **Configurable Randomness:** The `exam-assembler` now respects a user-defined random seed from the configuration file for fully reproducible exam generation. The `examforge-mockgen` tool was also updated to inject its CLI `--seed` into the generated configurations.
 
 ### Changed
 
+- **Mock Generator Defaults:** The `examforge-mockgen` tool was updated to automatically inject `registration_digits: 7` into the generated mock configurations to ensure OMR grids are stress-tested.
 - **Native Haskell Parameters:** The `parameters` values in the generator are now parsed directly as Haskell `String` expressions rather than JSON `Value` ASTs, allowing for native GHC type-inference and complex Haskell types.
 - **Deterministic Assembly:** Hardcoded an initial seed for the random generator in the assembler to ensure strictly deterministic exam variants across builds when no seed is provided in the configuration.
 - **Internal Refactoring:** Renamed the `ExamConfig` module to `ExamForge.ExamConfig` for better namespace hygiene.
 
 ### Spec (v3.1)
 
+- **Registration Digits Configuration:** Added an optional `registration_digits` integer field to `assembly_options`. If provided and greater than `0`, it triggers the generation of the OMR registration grid on the answer sheet.
 - **Semantic Group Constraints:** Introduced `selection.semantic_groups` to the Exam Configuration schema. This allows setting multi-dimensional, regex-based maximum quotas for specific conceptual groups across exam variants.
 - **Random Seed Configuration:** Added an optional `seed` integer field to `assembly_options`. When provided, it explicitly initializes the PRNG to guarantee reproducible exam and variant selections.
 - **Parameter Types:** Updated the Question Template schema to mandate that `parameters` values must be valid Haskell strings.

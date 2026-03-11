@@ -145,6 +145,7 @@ generateConfig bankFile prefix numVersions maxPerGroup examSeed =
         , "show_id" .= True
         , "show_tags" .= True
         , "shuffle_questions" .= True
+        , "registration_digits" .= (7 :: Int)
         , "seed" .= examSeed
         ]
     , "selection" .= object
