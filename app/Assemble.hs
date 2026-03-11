@@ -184,6 +184,7 @@ assembleExams baseName config filteredQuestions
             , showTags           = show_tags (assembly_options config)
             , showSubject        = not (hide_subjects (assembly_options config))
             , registrationDigits = registration_digits (assembly_options config)
+            , latexPreamble      = latex_preamble (content config)
             }
 
       -- Initialize Pseudo-Random Generators

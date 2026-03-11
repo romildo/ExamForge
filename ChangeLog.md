@@ -20,6 +20,7 @@ Current development state:
 
 ### Added
 
+- **Custom LaTeX Preamble:** The `exam-assembler` and LaTeX formatter now support injecting raw LaTeX code directly into the document preamble, enabling question-specific packages (e.g., `\usepackage{menukeys}`) without modifying the core style file.
 - **OMR Registration Grid:** The LaTeX formatter and `provastyle.sty` now support generating a dynamic, machine-readable bubbling grid for student registration numbers (matrícula) on the answer sheet. It automatically emits `id_C_R` cell coordinates and page alignment markers to the `.zonas` file for automated grading.
 - **`examforge-mockgen` CLI tool:** A new application to generate random, synthetic question banks and exam configurations to stress-test constraint algorithms.
 - **Semantic Groups Implementation:** The `exam-assembler` now features a stateful constraint solver that safely rotates overlapping semantic groups across infinite variant streams without violating quotas.
@@ -34,6 +35,7 @@ Current development state:
 
 ### Spec (v3.1)
 
+- **LaTeX Preamble Configuration:** Added an optional `latex_preamble` string field to the `content` block. This allows authors to define custom macros or import packages directly from the YAML configuration.
 - **Registration Digits Configuration:** Added an optional `registration_digits` integer field to `assembly_options`. If provided and greater than `0`, it triggers the generation of the OMR registration grid on the answer sheet.
 - **Semantic Group Constraints:** Introduced `selection.semantic_groups` to the Exam Configuration schema. This allows setting multi-dimensional, regex-based maximum quotas for specific conceptual groups across exam variants.
 - **Random Seed Configuration:** Added an optional `seed` integer field to `assembly_options`. When provided, it explicitly initializes the PRNG to guarantee reproducible exam and variant selections.

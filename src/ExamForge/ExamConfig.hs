@@ -92,16 +92,21 @@ instance FromJSON Selection where
 
 -- | Corresponds to the 'content' section.
 data Content = Content
-  { instructions :: String
+  { instructions   :: String
+  , latex_preamble :: String  -- Código a ser injetado no preâmbulo
   } deriving (Show, Generic)
 
 -- | Default values for Content.
 defaultContent :: Content
-defaultContent = Content { instructions = "" }
+defaultContent = Content
+  { instructions   = ""
+  , latex_preamble = ""       -- Default é vazio
+  }
 
 instance FromJSON Content where
   parseJSON = withObject "Content" $ \v -> Content
-    <$> v .:? "instructions" .!= instructions defaultContent
+    <$> v .:? "instructions"   .!= instructions defaultContent
+    <*> v .:? "latex_preamble" .!= latex_preamble defaultContent
 
 -- | Main configuration structure. Now handles optional sections.
 data Config = Config
