@@ -4,11 +4,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module ExamForge.ExamConfig
-  ( Config(..)
+  ( ExamConfig(..)
   , Header(..)
   , AssemblyOptions(..)
   , SemanticGroupRule(..)
   , Selection(..)
+  , EvaluatorConfig(..)
   , Content(..)
   , loadConfig
   ) where
@@ -16,6 +17,7 @@ module ExamForge.ExamConfig
 import Data.Yaml
 import GHC.Generics
 import Control.Monad (when)
+import qualified Data.Map as Map
 
 -- | Corresponds to the 'header' section of the YAML file.
 data Header = Header
@@ -108,23 +110,40 @@ instance FromJSON Content where
     <$> v .:? "instructions"   .!= instructions defaultContent
     <*> v .:? "latex_preamble" .!= latex_preamble defaultContent
 
--- | Main configuration structure. Now handles optional sections.
-data Config = Config
-  { header :: Header
-  , question_banks :: [FilePath]
-  , assembly_options :: AssemblyOptions
-  , selection :: Selection
-  , content :: Content
-  } deriving (Show, Generic)
+-- | Defines how to build and run a specific language script
+data EvaluatorConfig = EvaluatorConfig
+  { build     :: Maybe String
+  , run       :: String
+  , extension :: Maybe String
+  } deriving (Show, Eq)
 
-instance FromJSON Config where
-  parseJSON = withObject "Config" $ \v -> Config
+instance FromJSON EvaluatorConfig where
+  parseJSON = withObject "EvaluatorConfig" $ \v -> EvaluatorConfig
+    <$> v .:? "build"
+    <*> v .:  "run"
+    <*> v .:? "extension"
+
+-- | Main configuration structure. Now handles optional sections.
+data ExamConfig = Config
+  { header           :: Header
+  , question_banks   :: [FilePath]
+  , default_language :: Maybe String
+  , evaluators       :: Map.Map String EvaluatorConfig
+  , assembly_options :: AssemblyOptions
+  , selection        :: Selection
+  , content          :: Content
+  } deriving (Show)
+
+instance FromJSON ExamConfig where
+  parseJSON = withObject "ExamConfig" $ \v -> Config
     <$> v .:  "header"
     <*> v .:  "question_banks"
+    <*> v .:? "default_language"
+    <*> v .:? "evaluators"       .!= Map.empty
     <*> v .:? "assembly_options" .!= defaultAssemblyOptions
     <*> v .:? "selection"        .!= defaultSelection
     <*> v .:? "content"          .!= defaultContent
-
+    
 -- | Loads and parses an exam configuration file.
-loadConfig :: FilePath -> IO (Either ParseException Config)
+loadConfig :: FilePath -> IO (Either ParseException ExamConfig)
 loadConfig = decodeFileEither

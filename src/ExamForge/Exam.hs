@@ -1,6 +1,6 @@
 module ExamForge.Exam where
 
-import ExamForge.Type (SelectionType)
+import ExamForge.QuestionBank (SelectionType)
 
 -- A Variant represents one concrete, fully generated instance of a question.
 type Variant =

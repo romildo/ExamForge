@@ -1,9 +1,7 @@
--- File: app/Assemble.hs 
-module Main where
+module ExamForge.Assembler where
 
-import Generated.Questions (questionPool)
 import ExamForge.Exam
-import ExamForge.Type (SelectionType(..), QuestionTemplate(..))
+import ExamForge.QuestionBank (SelectionType(..), QuestionTemplate(..))
 import qualified ExamForge.Formatter.Latex as LatexFormatter
 import ExamForge.Formatter.Latex (FormatterConfig(..))
 import ExamForge.ExamConfig
@@ -22,26 +20,6 @@ import qualified Data.Map.Strict as Map
 import Debug.Trace (traceShowWith)
 import Debug.Pretty.Simple (pTraceShowWith, pTraceWith, pTrace, pTraceShow)
 
-main :: IO ()
-main = do
-  args <- getArgs
-  case args of
-    [configFile] -> do
-      configResult <- loadConfig configFile
-      case configResult of
-        Left err -> do
-          print err
-          exitFailure
-        Right config -> do
-          let filteredQuestions = filterQuestions (selection config) questionPool
-          putStrLn $ "Found " ++ show (length filteredQuestions) ++ " matching questions after tag filtering."
-          -- Extract the basename from the config file path
-          let baseName = takeBaseName configFile
-          -- Pass the basename to the assembly function
-          assembleExams baseName config filteredQuestions
-    _ -> do
-      putStrLn "Usage: exam-assembler <path-to-exam-config.yml>"
-      exitFailure
 
 -- | An explicit type signature for the helper function to resolve ambiguity.
 matchesAny :: [String] -> [String] -> Bool
@@ -171,7 +149,7 @@ generateExamQuestionLists gen rules shouldShuffleQs questions =
 -- | Map Question IDs to their infinite, cycled-shuffled stream of variants
 type VariantMap = Map.Map String [Variant]
 
-assembleExams :: String -> Config -> [Question] -> IO ()
+assembleExams :: String -> ExamConfig -> [Question] -> IO ()
 assembleExams baseName config filteredQuestions
   | null filteredQuestions = putStrLn "No questions matched the filters. No exams generated."
   | otherwise = do

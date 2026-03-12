@@ -3,7 +3,7 @@
 module ExamForge.Formatter.Latex where
 
 import ExamForge.Exam (Question(..), Variant)
-import ExamForge.Type (SelectionType(..))
+import ExamForge.QuestionBank (SelectionType(..))
 import ExamForge.ExamConfig (Header(..))
 
 import Data.List (findIndex, intercalate, sort)
