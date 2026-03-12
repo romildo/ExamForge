@@ -1,33 +1,40 @@
 <!-- File: SPECIFICATION.md -->
 
-# ExamForge Specification (v3.1)
+# ExamForge Specification (v4.0)
 
 `ExamForge` uses two families of YAML files to control exam generation at a high-level:
 
-1. **Exam configuration files:** recipes describing the exam metadata, question banks, and selection constraints.
-2. **Question template files:** data describing parameterized questions, including their text, answers, parameters, tags, and Haskell computations.
+1. **Exam configuration files:** recipes describing the exam metadata, question banks, execution environments, and selection constraints.
+2. **Question template files:** data describing parameterized questions, including their text, answers, parameters, tags, and target-language computations.
 
 ---
 
 ## Scope and versioning
 
-This document is the **normative specification** of the ExamForge YAML format, version **v3.1**.
+This document is the **normative specification** of the ExamForge YAML format, version **v4.0**.
 
 - All configuration (`configs/*.yml`) and question template (`questions/*.yml` / `*.yaml`) files are expected to conform to this version unless otherwise stated.
-- Future changes to the YAML format are reflected by:
-  - update this document to a new version (e.g. `v3.2`),
-  - recording the change in `ChangeLog.md`.
-
-The current Haskell codebase is intended to be compatible with **Specification v3.1**.
-
-- Version **v3.0.1** improves the documentation, fixing some accidental omissions from prior updates, and changes types of values in parameters.
-- Version **v3.1** introduced the **Semantic Group Constraints** feature (`selection.semantic_group`).
+- Version **v4.0** marks a major architectural shift to a **Polyglot Runtime Engine**. Parameter computations are no longer strictly bound to Haskell at compile-time. Instead, ExamForge orchestrates external scripts (Python, C, Haskell, etc.) to evaluate variants and generate an Intermediate Representation (JSON).
 
 ---
 
-## Exam Configuration File
+## 1. Architectural Overview: The Two-Phase Pipeline
 
-The exam configuration file is the main *recipe* for an exam. It is the single input to the `exam-assembler` executable and is also read by `examforge` to locate question banks.
+ExamForge v4.0 separates exam generation into two distinct phases:
+
+### Phase 1: Evaluation (The Polyglot Orchestrator)
+When ExamForge reads a parameterized question, it uses the specified `language` to generate a temporary source file containing the user's `computations` and parameter `rows`. It executes this script using the commands defined in the `evaluators` configuration. 
+
+The external script is responsible for executing the math/logic, interpolating the strings using native format specifiers, and outputting a flat **Expanded Variant Bank** in JSON format to `stdout`.
+
+### Phase 2: Assembly (The Constraint Solver)
+The Haskell assembler consumes the JSON output. Because the JSON contains pre-computed, fully interpolated variants, the assembler's only job is to apply `selection` filters, enforce `semantic_group` quotas, shuffle the variants, and render the final LaTeX and CSV files.
+
+---
+
+## 2. Exam Configuration File
+
+The exam configuration file is the main *recipe* for an exam.
 
 ### Top-level structure
 
@@ -38,6 +45,8 @@ The root of the file is a single YAML object:
 
 header: { ... }
 question_banks: [ ... ]
+default_language: "python" # Optional (New in v4.0)
+evaluators: { ... }        # Optional (New in v4.0)
 assembly_options: { ... }  # Optional
 selection: { ... }         # Optional
 content: { ... }           # Optional
@@ -74,6 +83,34 @@ question_banks:
 ```
 
 If the patterns match no files, `examforge` still succeeds but simply generates an empty question pool. Subsequent `exam-assembler` runs will report that no questions matched the filters.
+
+
+#### `default_language` (String, Optional)
+
+The fallback language used for evaluating question templates if a specific question omits the `language` field.  
+Default: `"haskell"`.
+
+#### `evaluators` (Object, Optional)
+
+Defines how ExamForge should compile and run external scripts for specific languages.
+
+Fields for each language object:
+
+* `build` (String, Optional): The compilation command. Use `%f` for the input source file and `%e` for the output executable.
+* `run` (String, Required): The execution command.
+* `extension` (String, Optional): The extension used in the temporary file name of the script source code.
+
+Example:
+
+```yaml
+evaluators:
+  python:
+    run: "python3 %f"
+  c:
+    build: "gcc -Wall -o %e %f"
+    run: "./%e"
+    extension: "c"
+```
 
 #### `assembly_options` (Object, Optional)
 
@@ -267,9 +304,9 @@ If `content` or `instructions` are omitted, no extra instructions are printed.
 
 ---
 
-## Question Template File
+## 3. Question Template File
 
-A question template file defines one or more logical questions, typically grouped by topic. These are the inputs consumed by `examforge` to generate a Haskell question pool.
+A single file contains a **list** of one or more question template objects.
 
 ### File structure
 
@@ -282,18 +319,20 @@ Example:
 ```yaml
 # File: questions/logic-questions.yaml
 
-- id: logic-001
+- id: "logic-001"
   title: "Basic propositional logic"
   format: "latex"
   selection_type: "any"
   subject: "Logic"
   tags: ["logic", "introduction", "group-prop-basics"]
   delimiters:
-    start: "<{{"
+    start: "{{"
     end: "}}"
+  language: "haskell"
   parameters:
-    - { p: "1", q: "2" }
-    - { p: "3", q: "4" }
+    rows:
+      - { p: "1", q: "2" }
+      - { p: "3", q: "4" }
   computations: |
     -- Haskell code
     result = p + q
@@ -304,7 +343,7 @@ Example:
     - incorrect: "{{result + 1}}"
     - incorrect: "{{result - 1}}"
 
-- id: logic-002
+- id: "logic-002"
   ...
 ```
 
@@ -363,39 +402,50 @@ Each object describes one logical question, possibly parameterized into multiple
 * `tags` (List of Strings)  
   A list of tags used for selection, filtering (e.g. `"logic"`, `"set-theory"`, `"easy"`), and semantic grouping (e.g. `"grupo-hof-conceito"`).  
   Defaults to `[]`.  
-  * **Semantic group tags** are **ordinary tags** whose *name* matches the configured `selection.semantic_group.tag_pattern`. There is nothing special encoded in the question file itself; all semantic-group meaning is driven by the exam configuration.
+  
+  **Semantic group tags** are **ordinary tags** whose *name* matches the configured `selection.semantic_group.tag_pattern`. There is nothing special encoded in the question file itself; all semantic-group meaning is driven by the exam configuration.
 
+* `language` (String)  
+  The target evaluator language (e.g., `"python"`, `"c"`). If omitted, falls back to `default_language` in the exam configuration.
 
-* `parameters` (List of Objects)  
+* `parameters` (Object)  
   Parameter sets used to create multiple concrete variants of the same logical question.
 
-  * Each element in the list is a key–value map.
-  * **Crucial:** All objects in the list are expected to define exactly the same keys.
-  * Values **must be strings** representing valid Haskell expressions (e.g., `"173"`, `"[1, 2, 3]"`, `"\"Patrick\""`). 
-  * These keys are bound as Haskell variables in the generated code. They are exposed directly to the `computations` block, and can be interpolated into the `question` and `answers` strings using the configured delimiters.
+  * **`types`** (Dictionary, Optional):  
+    Maps parameter names to their native types. Strictly required for statically typed languages (like `"c"`), but safely ignored by dynamically typed languages (like `"python"`).
+
+  * **`rows`** (List of Dictionaries, Required if parameters exist):  
+    - The explicitly defined sets of values for each generated variant.
+    - All rows must define exactly the same keys.  
+    - Values **must be strings** representing valid expressions in the computations language (e.g., `"173"`, `"[1, 2, 3]"`, `"\"Patrick\""`, for Haskell).  
+    - These keys are bound as variables in the generated code. They are exposed directly to the `computations` block, and can be interpolated into the `question` and `answers` strings using the configured delimiters.
 
   Example:
   ```yaml
+  language: "c"
   parameters:
-    - { altura: "173", peso: "67.5", nome: "\"Patrick\"" }
-    - { altura: "180", peso: "86.0", nome: "\"Mary\"" }
+    types: { height: "int", weight: "float", name: "char *" }
+    rows:
+      - { height: "173", weight: "67.5", name: "\"Patrick\"" }
+      - { height: "180", weight: "86.0", name: "\"Mary\"" }
 
 * `computations` (String)  
-  A block of Haskell code (typically a `let` block) useful to derive secondary values from parameters.
+  A block of code written in the target `language`. Useful to derive secondary values from parameters. This code is injected directly into the evaluation loop of the generated script. It has access to the variables defined in the current parameter row.
 
   Example:
 
   ```yaml
+  language: "haskell"
   computations: |
     let
       x = -b / a :: Double
       absA = abs a
   ```
 
-  This code is embedded into the generated Haskell module and must type-check in that context. Any compilation error will surface as a normal Haskell compilation error when building the generated module.
-
 * `delimiters` (Object)  
   Custom delimiters for inline expressions in `question` and `answers`.
+
+  Defaults to `["{{", "}}"]`.
 
   Structure:
 
@@ -418,23 +468,34 @@ Each object describes one logical question, possibly parameterized into multiple
 
   is interpreted as a Haskell expression in scope of the current parameters and computations, and its rendered value is substituted into the text.
 
+  **The Native Format Rule (New in v4.0):** Variables inside delimiters can optionally include a format specifier separated by a colon. **The specifier must be written in the native syntax of the target language.** ExamForge extracts this hint to generate native interpolation code (e.g., `f"{var:.2f}"` for Python, or `printf("%.2f", var)` for C).  
+  Example:
+  ```yaml
+  # For Python:
+  question: "Patient BMI is @@imc:.2f@@"
+  # For C:
+  question: "Patient BMI is @@imc:%.2f@@"
+  ```
+
 ---
 
-## End-to-end examples (parameters + computations)
+## 4. End-to-end Examples
 
-Below is a minimal but complete example of a parameterized question template using `parameters`, `computations`, and the default `{{ .. }}` delimiters.
+### Example 1: Statically Typed with Type Inference (Haskell)
 
 ```yaml
-- id: algebra-001
-  title: Linear equation
-  format: latex
-  selection_type: any
-  subject: Algebra
+- id: "algebra-001"
+  title: "Linear equation"
+  language: "haskell"
+  format: "latex"
+  selection_type: "any"
+  subject: "Algebra"
   tags: ["algebra", "equations"]
 
   parameters:
-    - { a: "2", b: "3" }
-    - { a: "4", b: "-1" }
+    rows:
+      - { a: "2", b: "3" }
+      - { a: "4", b: "-1" }
 
   computations: |
     let
@@ -461,16 +522,17 @@ Semantics:
 * During exam assembly, these variants are folded into the variant stream for this logical question and combined with variants from other questions.
 
 
-Below is a complete example of a parameterized question leveraging the Haskell compilation step.
+### Example 2: Haskell (List Manipulation)
 
 ```yaml
-- id: cap15-hof-flip-map-concreto
-  title: HOF - Combinação de map e flip
-  subject: 15: Funções de Ordem Superior
-  format: latex
-  selection_type: any
+- id: "cap15-hof-flip-map-concreto"
+  title: "HOF - Combinação de map e flip"
+  subject: "15: Funções de Ordem Superior"
+  format: "latex"
+  selection_type: "any"
   tags: ["capítulo-15", "hof", "grupo-hof-aplicacao"]
   delimiters: { start: "|", end: "|" }
+  language: "haskell"
   
   parameters:
     - { exp': "2", list: "[1, 2, 3]", wrongOp: "[2, 4, 8]" }
@@ -490,14 +552,96 @@ Below is a complete example of a parameterized question leveraging the Haskell c
         \mintinline{haskell}{|show correct|}
     - incorrect: |
         \mintinline{haskell}{|show wrongOp|}
-
 ```
 
 For each parameter set, `examforge` binds `exp'` and `list`, evaluates the `computations` block to find `correct`, and injects the results into the `|...|` delimiters in the question and answers.
 
+
+### Example 3: Dynamically Typed (Python)
+
+```yaml
+- id: "imc-calc-01"
+  title: "Cálculo de IMC"
+  language: "python"
+  format: "latex"
+  selection_type: "any"
+  delimiters: { start: "@@", end: "@@" }
+  parameters:
+    rows:
+      - { altura: "1.73", peso: "67.5" }
+      - { altura: "1.80", peso: "86.0" }
+      
+  computations: |
+    # Native Python logic
+    result = peso / (altura ** 2)
+    wrong1 = peso / altura
+    
+  question: |
+    Um paciente de altura @@altura:.2f@@m e peso @@peso:.1f@@kg tem qual IMC?
+  
+  answers:
+    - correct: "@@result:.2f@@"
+    - incorrect: "@@wrong1:.2f@@"
+```
+
+### Example 4: Statically Typed (C)
+
+```yaml
+- id: "pointer-arithmetic-01"
+  title: "Aritmética de Ponteiros Básica"
+  language: "c"
+  format: "latex"
+  selection_type: "any"
+  delimiters: { start: "{{", end: "}}" }
+  
+  parameters:
+    types: { offset: "int", base: "int" }
+    rows:
+      - { offset: "3", base: "1000" }
+      - { offset: "4", base: "2000" }
+      
+  computations: |
+    /* Native C logic */
+    int result = base + (offset * 4);
+    int wrong1 = base + offset;
+    
+  question: |
+    Se um ponteiro de 32 bits armazena o endereço {{base:%d}},
+    qual o valor de \\texttt{p + {{offset:%d}}}?
+  
+  answers:
+    - correct: "{{result:%d}}"
+    - incorrect: "{{wrong1:%d}}"
+```
+
 ---
 
-## 4. Assembly algorithm (informal overview)
+## 5. The Intermediate Representation (JSON IR)
+
+For developers implementing new Language Evaluator modules, your generated script must output a JSON object to `stdout` matching this schema. This is the bridge between the evaluator and the assembler.
+
+```json
+{
+  "id": "pointer-arithmetic-01",
+  "title": "Aritmética de Ponteiros Básica",
+  "subject": "3: Pointers",
+  "tags": ["dificuldade-media"],
+  "selection_type": "any",
+  "variants": [
+    {
+      "question": "Se um ponteiro de 32 bits armazena o endereço 1000...",
+      "answers": [
+        { "correct": true,  "text": "1012" },
+        { "correct": false, "text": "1003" }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+## 6. Assembly algorithm (informal overview)
 
 1. **Selection:** Filter the pool using `include_tags` and `exclude_tags`. Identify semantic groups via `tag_pattern`.
 2. **Variant streams:** For each remaining question, expand `parameters` and `computations` into a (finite) list of variants of the question. If the question is not parameterized, the list of variants will have only the original question.
@@ -510,7 +654,7 @@ For each parameter set, `examforge` binds `exp'` and `list`, evaluates the `comp
 
 ---
 
-## Validation and error handling
+## 7. Validation and error handling
 
 ExamForge enforces a number of structural and semantic invariants:
 
@@ -537,18 +681,20 @@ Users should treat all such errors as **hard failures** and fix their YAML / Has
 
 ---
 
-## Informal schema summary
+## 8. Informal Schema Summary
 
 For convenience, here is an approximate Haskell-style summary of the YAML schema:
 
 ```haskell
--- Exam configuration
+-- Exam configuration (v4.0)
 data Config = Config
   { header           :: Header
-  , question_banks   :: [FilePath]        -- glob patterns allowed
-  , assembly_options :: AssemblyOptions   -- defaulted if omitted
-  , selection        :: Selection         -- defaulted if omitted
-  , content          :: Content           -- defaulted if omitted
+  , question_banks   :: [FilePath]
+  , default_language :: Maybe String
+  , evaluators       :: Map String EvaluatorConfig
+  , assembly_options :: AssemblyOptions
+  , selection        :: Selection
+  , content          :: Content
   }
 
 data Header = Header
@@ -582,24 +728,34 @@ data Content = Content
   { instructions :: String    -- default ""
   }
 
--- Question template
+data EvaluatorConfig = EvaluatorConfig
+  { build     :: Maybe String
+  , run       :: String
+  , extension :: Maybe String
+  }
+
+-- Question template (v4.0)
 data QuestionTemplate = QuestionTemplate
   { id             :: String
   , title          :: String
-  , format         :: String            -- "latex"
+  , format         :: String
+  , language       :: Maybe String
   , selection_type :: String            -- "any" | "all"
   , question       :: String
   , answers        :: [AnswerSpec]
   , subject        :: Maybe String
   , tags           :: [String]
-  , parameters     :: [Map String String]
-  , computations   :: Maybe String      -- Haskell code
+  , parameters     :: Maybe ParameterBlock
+  , computations   :: Maybe String
   , delimiters     :: Maybe { start :: String, end :: String }
+  }
+
+data ParameterBlock = ParameterBlock
+  { types :: Maybe (Map String String)
+  , rows  :: [Map String String]
   }
 
 data AnswerSpec
   = Correct   String
   | Incorrect String
 ```
-
-This summary is **informal** and may omit internal details, but it reflects the intended shape of the YAML documents.

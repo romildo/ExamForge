@@ -2,8 +2,8 @@
 
 All notable changes to ExamForge and its specification will be documented in this file.
 
-- Tooling (Haskell executables: `examforge`, `exam-assembler`, `examforge-mockgen`) uses a Cabal version number (currently `0.1.0.0` in `ExamForge.cabal`).
-- The YAML format is separately versioned as the **ExamForge Specification** (current: **v3.1**).
+- Tooling (Haskell executable: `examforge`) uses a Cabal version number (currently `0.1.0.0` in `ExamForge.cabal`).
+- The YAML format is separately versioned as the **ExamForge Specification** (current: **v4.0**).
 
 Until the first tagged release is cut, all changes live under the **[Unreleased]** section.
 
@@ -16,30 +16,47 @@ Until the first tagged release is cut, all changes live under the **[Unreleased]
 Current development state:
 
 - Tools: development build (Cabal `version: 0.1.0.0`), not yet officially released.
-- Spec: **ExamForge Specification v3.1** (`SPECIFICATION.md`).
+- Spec: **ExamForge Specification v4.0** (`SPECIFICATION.md`).
 
-### Added
+### Added (v4.0 Polyglot Architecture)
 
-- **Custom LaTeX Preamble:** The `exam-assembler` and LaTeX formatter now support injecting raw LaTeX code directly into the document preamble, enabling question-specific packages (e.g., `\usepackage{menukeys}`) without modifying the core style file.
-- **OMR Registration Grid:** The LaTeX formatter and `provastyle.sty` now support generating a dynamic, machine-readable bubbling grid for student registration numbers (matrícula) on the answer sheet. It automatically emits `id_C_R` cell coordinates and page alignment markers to the `.zonas` file for automated grading.
-- **`examforge-mockgen` CLI tool:** A new application to generate random, synthetic question banks and exam configurations to stress-test constraint algorithms.
-- **Semantic Groups Implementation:** The `exam-assembler` now features a stateful constraint solver that safely rotates overlapping semantic groups across infinite variant streams without violating quotas.
-- **Configurable Randomness:** The `exam-assembler` now respects a user-defined random seed from the configuration file for fully reproducible exam generation. The `examforge-mockgen` tool was also updated to inject its CLI `--seed` into the generated configurations.
+- **Polyglot Runtime Engine:** ExamForge can now evaluate parameterized questions using external scripts. Native support is built-in for Python, C, C++, and Haskell.
+- **Unified CLI:** The toolchain has been consolidated into a single `examforge` executable with powerful subcommands (`build`, `check`, `mock`). 
+- **AST Templating Engine:** Replaced brittle regex-based substitution with a robust AST parser (`ExamForge.Template`) that safely extracts variables and format specifiers.
+- **Developer Debugging Tools:** Added a `--show-script` (`-s`) flag to the `check` command to dump the dynamically generated evaluator source code (e.g., raw C or Python) directly to the terminal for inspection.
+- **Improved DX Output:** The CLI now uses `pretty-simple` to format deeply nested JSON/Haskell records into highly readable, indented output during dry-runs.
+- **JSON Intermediate Representation (IR):** Established a strict JSON schema for evaluators to pass computed variants back to the Haskell assembler securely.
+
+### Added (v3.1 features)
+
+- **Custom LaTeX Preamble:** The LaTeX formatter now supports injecting raw LaTeX code directly into the document preamble, enabling question-specific packages (e.g., `\usepackage{menukeys}`).
+- **OMR Registration Grid:** The LaTeX formatter and `provastyle.sty` now support generating a dynamic, machine-readable bubbling grid for student registration numbers (matrícula) on the answer sheet. 
+- **Semantic Groups Implementation:** The assembler features a stateful constraint solver that safely rotates overlapping semantic groups across infinite variant streams without violating quotas.
+- **Configurable Randomness:** The assember now respects a user-defined random seed from the configuration file for fully reproducible exam generation.
 
 ### Changed
 
-- **Mock Generator Defaults:** The `examforge-mockgen` tool was updated to automatically inject `registration_digits: 7` into the generated mock configurations to ensure OMR grids are stress-tested.
-- **Native Haskell Parameters:** The `parameters` values in the generator are now parsed directly as Haskell `String` expressions rather than JSON `Value` ASTs, allowing for native GHC type-inference and complex Haskell types.
+- **No Ahead-of-Time Compilation:** The assembler no longer generates and compiles a static `Generated.Questions.hs` file. All evaluations are handled dynamically via system processes and temporary directories.
+- **CLI Consolidation:** The separate `exam-assembler` and `examforge-mockgen` applications were converted into library modules and integrated as `examforge build` and `examforge mock`.
+- **Native Parameters:** The `parameters` values in the generator are now parsed directly as string expressions rather than JSON `Value` ASTs, allowing for native types in the language used for computations.
 - **Deterministic Assembly:** Hardcoded an initial seed for the random generator in the assembler to ensure strictly deterministic exam variants across builds when no seed is provided in the configuration.
 - **Internal Refactoring:** Renamed the `ExamConfig` module to `ExamForge.ExamConfig` for better namespace hygiene.
 
-### Spec (v3.1)
+### Removed
 
+- Removed the `exam-assembler` and `examforge-mockgen` standalone executables from the `.cabal` file.
+- Removed the ZeroMQ / Jupyter kernel communication architecture in favor of standard process execution.
+
+### Spec (v4.0 & v3.1)
+
+- **Polyglot Configuration:** Added `default_language` and `evaluators` to the Exam Configuration schema to define build/run commands for external scripts.
+- **Language Overrides:** Added `language` to the Question Template schema to allow per-question evaluator overrides.
+- **Parameter Types:** Added `parameters.types` to the Question Template schema to support static type declarations for compiled languages like C and C++.
+- **Native Format Rule:** Delimiters now support native format specifiers (e.g., `{{var:%.2f}}` for C, or `@@var:.2f@@` for Python).
 - **LaTeX Preamble Configuration:** Added an optional `latex_preamble` string field to the `content` block. This allows authors to define custom macros or import packages directly from the YAML configuration.
 - **Registration Digits Configuration:** Added an optional `registration_digits` integer field to `assembly_options`. If provided and greater than `0`, it triggers the generation of the OMR registration grid on the answer sheet.
 - **Semantic Group Constraints:** Introduced `selection.semantic_groups` to the Exam Configuration schema. This allows setting multi-dimensional, regex-based maximum quotas for specific conceptual groups across exam variants.
 - **Random Seed Configuration:** Added an optional `seed` integer field to `assembly_options`. When provided, it explicitly initializes the PRNG to guarantee reproducible exam and variant selections.
-- **Parameter Types:** Updated the Question Template schema to mandate that `parameters` values must be valid Haskell strings.
 - **Assembly Options Clarification:** Fixed the documentation for `shuffle_questions` to explicitly define its default value, removing the ambiguity of "implementation dependent".
 - **Documentation Polish:** Cleaned up `README.md` and `SPECIFICATION.md` for clarity and removed overly long real-world examples in favor of concise structural examples.
 

@@ -2,9 +2,9 @@
 
 # ExamForge 🚀
 
-ExamForge is a command-line toolchain written in Haskell for generating parameterized, LaTeX-based exams from declarative YAML specifications. A single exam configuration file controls everything from the header and instructions to question selection criteria and semantic grouping.
+ExamForge is a command-line toolchain for generating parameterized, LaTeX-based exams from declarative YAML specifications. A single exam configuration file controls everything from the header and instructions to question selection criteria and semantic grouping.
 
-It is designed for instructors who are comfortable with LaTeX, YAML, and basic command-line tools, and who want to produce multiple exam versions plus answer keys in a repeatable way.
+Powered by a **Polyglot Architecture**, ExamForge allows instructors to write question parameters and computations in their language of choice (Python, C, C++, or Haskell) while still leveraging the full typesetting power of LaTeX. It is designed for instructors who want to produce multiple exam versions plus answer keys in a repeatable, dynamic way.
 
 ---
 
@@ -12,7 +12,7 @@ It is designed for instructors who are comfortable with LaTeX, YAML, and basic c
 
 ExamForge is currently **pre-1.0** and under active development.
 
-- The YAML specification is versioned (current: **Specification v3.0.1**).
+- The YAML specification is versioned (current: **Specification v4.0**).
 - CLI behavior and internal implementation may change.
 - Changes to the tools and the specification will be recorded in `ChangeLog.md`.
 
@@ -22,33 +22,30 @@ For the normative YAML format, see [`SPECIFICATION.md`](SPECIFICATION.md).
 
 ## Architecture & System Boundaries
 
-ExamForge is split into two distinct executables to separate the compilation of Haskell logic from the pseudo-random assembly of exam variants:
+ExamForge v4.0 operates as a **single, unified executable** (`examforge`) that manages the entire pipeline without requiring ahead-of-time Haskell compilation for your question banks:
 
-1. **`examforge` (The Compiler):** Reads question bank YAML files, extracts the embedded Haskell computations (`computations`), and compiles them into a strongly-typed Haskell module (`Generated.Questions`).
-2. **`exam-assembler` (The Assembler):** Reads the exam configuration, loads the compiled question pool, applies selection filters (tags and semantic groups), evaluates the parameterized variants, and securely pseudo-randomizes the output to produce `.tex` documents and `.csv` answer keys.
+1. **The Polyglot Orchestrator:** Reads question bank YAML files, detects the target language (e.g., Python, C++), dynamically generates the execution script, and runs it securely in a temporary directory to calculate the variants.
+2. **The Assembler:** Reads the exam configuration, applies selection filters (tags and semantic groups), and securely pseudo-randomizes the generated variants to produce `.tex` documents and `.csv` answer keys.
 
 ## Features
 
-- **Declarative Exam Configuration:**  
-  Define metadata, question bank locations, assembly options, and selection rules in a single YAML file.
+- **Declarative Exam Configuration:** Define metadata, question bank locations, assembly options, evaluator overrides, and selection rules in a single YAML file.
 
-- **Flexible Question Specification:**  
-  Define questions, parameters, tags, and computational logic in separate, human-readable YAML files.
+- **Flexible Question Specification:** Define questions, parameters, tags, and computational logic in separate, human-readable YAML files.
 
-- **Parameterized Questions:**  
-  Generate many variants of a conceptual question using parameter sets and small Haskell expressions.
+- **Parameterized Questions:** Generate many variants of a conceptual question using parameter sets and small expressions in a programming language.
 
-- **Semantic Group Rotation:**  
-  Ensure comprehensive coverage without redundancy. Group related questions by tags (e.g., `grupo-hof-conceito`) and constrain the assembler to pick at most $N$ questions from that group per exam, rotating choices fairly across versions.
+- **Polyglot Evaluators:** Write computational logic and format strings using native Python, C, C++, or Haskell. ExamForge automatically handles the bridging, compilation, and JSON serialization.
 
-- **Balanced Variant Generation:**  
-  Each question is expanded into an infinite stream of variants. Versions are built by cycling through these streams and shuffling answers deterministically (based on a random seed).
+- **Unified CLI Interface:** A single tool to dry-run your question banks (`check`), assemble full exams (`build`), and generate synthetic datasets (`mock`).
 
-- **PDF & LaTeX Output:**  
-  Produces `.tex` sources and final `.pdf` files using `latexmk`/`lualatex`, including student-ready versions and answer-sheets-only PDFs.
+- **Semantic Group Rotation:** Ensure comprehensive coverage without redundancy. Group related questions by tags (e.g., `grupo-hof-conceito`) and constrain the assembler to pick at most $N$ questions from that group per exam, rotating choices fairly across versions.
 
-- **CSV Answer Key**  
-  Generates a `.csv` answer key for all versions of an exam, suitable for automated grading or downstream tooling.
+- **Balanced Variant Generation:** Each question is expanded into an infinite stream of variants. Versions are built by cycling through these streams and shuffling answers deterministically (based on a random seed).
+
+- **PDF & LaTeX Output:** Produces `.tex` sources and final `.pdf` files using `latexmk`/`lualatex`, including student-ready versions and answer-sheets-only PDFs.
+
+- **CSV Answer Key** Generates a `.csv` answer key for all versions of an exam, suitable for automated grading or downstream tooling.
 
 ---
 
@@ -63,10 +60,9 @@ You’ll need:
 - PDF utilities:
   - `qpdf`
   - `pdfunite` (usually from `poppler-utils`)
+- **Target Languages (Optional but recommended):** `python3`, `gcc`, `g++` (depending on which languages you use in your question banks).
 
-Install these using your system’s package manager.
-
-### 2. Build the tools
+### 2. Build the tool
 
 From the project root:
 
@@ -74,125 +70,244 @@ From the project root:
 cabal build
 ```
 
-This builds two executables:
-
-* `examforge` – compiles question bank YAML files into a Haskell module.
-* `exam-assembler` – reads an exam configuration and generates `.tex` exams and a `.csv` answer key.
+This builds the unified `examforge` executable.
 
 ---
 
 ## Workflow
 
-ExamForge is designed around a **unified, config-driven workflow** orchestrated by the provided `Makefile`.
+ExamForge is designed around configuration files describing exams, and question bank files, containing questions templates that can be included in an exam. Both are YAML files.
 
-1. **Define**
-   Create a YAML exam configuration in `configs/` (for example, `configs/EE1.yml`).
-   This file specifies:
+1. **Define question banks**
+   Create one or more YAML question banks (for example, `questions/chapter1.yml`).
+   This file specifies the details of a set of questions, possibly including:
 
-   * Header metadata (`header`)
-   * Question banks (`question_banks`)
-   * Assembly options (`assembly_options`)
-   * Selection rules (`selection`)
-   * Additional content (`content`, e.g. instructions for the student)
+   * question metadata, like:
+     - a unique identifier
+     - a title
+     - a subject
+     - a list of tags
+   * a computation block in a given programming language
+   * a list of named parameter sets with values that can be used in the computation block
+   * a question template text, with support for interpolation of expression
+   * a list of answer choices templates, also with suppport for interpolation
 
-   See [`SPECIFICATION.md`](SPECIFICATION.md) for the full schema.
+2. **Define an exam configuration**
+   Create a YAML exam configuration (for example, `configs/exam1.yml`).
+   This file may specify, among other things:
 
-2. **Generate code** (`examforge`)
-   ExamForge reads the exam configuration, expands the `question_banks` glob patterns, and parses all matching question bank `.yml` files. It then generates a Haskell module:
+   * exam header metadata
+   * list of question banks
+   * assembly options
+   * question selection rules
+   * additional content (e.g. instructions for the student)
 
-   * Module name: `Generated.Questions`
-   * Path: `generated/Generated/Questions.hs`
-   * Export: `questionPool :: [Question]` (internal representation)
+   See [`SPECIFICATION.md`](SPECIFICATION.md) for the details.
 
-3. **Assemble exams** (`exam-assembler`)
-   The assembler:
-
-   * Loads the same exam configuration.
-   * Applies the `selection` rules to filter questions by tags.
+3. **Assemble exams** (`examforge`)
+   ExamForge does the following to assemble exams:
+   
+   * Reads an exam configuration.
+   * Parses the questions from the question banks.
+   * Applies the selection rules to filter questions by tags.
    * Uses the parameterized variants for each question and constructs an infinite stream of variants per question.
    * For each exam version:
 
      * Picks one variant per question (cycling through the streams).
-     * Randomly shuffles the answer options.
+     * Possibly randomly shuffles the answer options.
    * Writes:
 
-     * LaTeX exam files: `exams/<BaseName>-NN.tex`
-     * CSV key: `exams/<BaseName>.keys.csv`
+     * LaTeX exam files (for example, `exams/<BaseName>-NN.tex`)
+     * CSV key (for example `exams/<BaseName>-NN.keys.csv`)
 
-   where `<BaseName>` is the basename of your config file (e.g. `EE1` for `configs/EE1.yml`).
+   where `<BaseName>` is the basename of your config file (e.g. `exam1` for `configs/exam1.yml`).
 
 4. **Compile PDFs** (`latexmk`)
-   Finally, `latexmk` runs `lualatex` as many times as needed to produce the final PDFs.
+   Finally a LaTeX installation can be used to compile the generated LaTeX files (`.tex`). This can be accomplished with a tool like `latexmk`, or directly running a LaTeX compiler, like `lualatex`.
 
-All of this is wrapped up into a small number of `make` targets.
+## Example
+
+### Exam Configuration
+
+``` yaml
+# File: configs/test-exam.yml
+
+header:
+  institution: "My University"
+  course: "ExamForge Development"
+  professor: "John Joe"
+  semester: "2026/1"
+  title: "Testing ExamForge features"
+
+question_banks:
+  - "questions/test-python.yml"
+  - "questions/test-c.yml"
+  - "questions/test-haskell.yml"
+  - "questions/test-cpp.yml"
+
+default_language: "python"
+
+evaluators:
+  python:
+    run: "python3 %f"
+
+assembly_options:
+  versions: 2
+  show_id: true
+  show_tags: false
+  hide_subjects: false
+  shuffle_questions: true
+  seed: 42
+
+selection:
+  include_tags:
+    - "^python-test$"
+    - "^c-test$"
+    - "^haskell-test$"
+    - "^cpp-test$"
+  exclude_tags:
+    - "level:easy"
+  semantic_groups: []
+
+content:
+  instructions: |
+    Good luck!
+  latex_preamble: ""
+```
+
+### Question Bank
+
+``` yaml
+# File: questions/test-python.yml
+
+- id: py-math-01
+  title: "Juros Compostos"
+  format: "latex"
+  language: "python"
+  selection_type: "any"
+  subject: "Matemática Financeira"
+  tags: ["python-test", "matematica", "dificuldade-media"]
+  delimiters: 
+    start: "@@"
+    end: "@@"
+  
+  parameters:
+    rows:
+      - { principal: "1000", rate: "0.05", years: "3" }
+      - { principal: "2500", rate: "0.08", years: "5" }
+      
+  computations: |
+    # Python native calculations
+    amount = principal * ((1 + rate) ** years)
+    
+    # Common student mistakes for distractors
+    simple_interest_amount = principal * (1 + (rate * years))
+    wrong_power = principal * ((1 + rate) ** (years - 1))
+    
+  question: |
+    Se um capital de R\\$ @@principal:,.2f@@ for investido a uma taxa de juros compostos
+    de @@rate:.2f@@ ao ano, qual será o montante final após @@years@@ anos?
+  
+  answers:
+    - correct: "R\\$ @@amount:,.2f@@"
+    - incorrect: "R\\$ @@simple_interest_amount:,.2f@@"
+    - incorrect: "R\\$ @@wrong_power:,.2f@@"
+    - incorrect: "R\\$ @@principal:,.2f@@"
+
+- id: py-physics-01
+  title: "Cinemática Básica"
+  format: "latex"
+  language: "python"
+  selection_type: "any"
+  subject: "Física"
+  tags: ["python-test", "fisica", "dificuldade-facil"]
+  delimiters: 
+    start: "{{"
+    end: "}}"
+  
+  parameters:
+    rows:
+      - { dist: "150", time: "2" }
+      - { dist: "320", time: "4" }
+      
+  computations: |
+    speed = dist / time
+    wrong_mul = dist * time
+    wrong_inv = time / dist
+    
+  question: |
+    Um carro percorre uma distância de {{dist}} km em {{time}} horas.
+    Qual é a sua velocidade média?
+  
+  answers:
+    - correct: "{{speed:.1f}} km/h"
+    - incorrect: "{{wrong_mul:.1f}} km/h"
+    - incorrect: "{{wrong_inv:.3f}} km/h"
+    - incorrect: "{{dist:.1f}} km/h"
+```
 
 ---
 
-## Using the `Makefile`
 
-The recommended way to interact with ExamForge is via the provided `Makefile`.
+## Command-Line Usage
 
-### 1. Create an Exam Configuration File
+The `examforge` CLI provides three main subcommands: `check`, `build`, and `mock`.
 
-Create a new `.yml` file under `configs/` (e.g. `configs/EE1.yml`) describing your exam.
-See [`SPECIFICATION.md`](SPECIFICATION.md#1-exam-configuration-file) for the exact schema.
+### 1. Checking Question Banks (`check`)
 
-### 2. Generate exam PDFs
-
-From the project root:
+Before assembling a full exam, you can dry-run a question bank to ensure your code executes correctly and formatting is applied.
 
 ```bash
-# Build a specific version of the exam (generates code, assembles, and compiles LaTeX)
-make exams/EE1-01.pdf
+# Evaluate an entire question bank
+cabal run examforge -- check questions/my-bank.yml
 
-# Build and then open the first version for preview
-make exams/EE1-01.pdf PREVIEW=yes
+# Evaluate a specific question by ID
+cabal run examforge -- check questions/my-bank.yml --id py-math-01
+
+# Debugging: Dump the generated source code (Python, C, etc.) to the terminal without running it
+cabal run examforge -- check questions/my-bank.yml -i py-math-01 --show-script
 ```
 
-The Makefile will:
+### 2. Assembling Exams (`build`)
 
-1. Run `examforge` on `configs/EE1.yml`.
-2. Run `exam-assembler` on `configs/EE1.yml`.
-3. Use `latexmk` to compile the generated `.tex` files under `exams/`.
-
-### 3. Student-ready PDFs and answer sheets
-
-Additional convenience targets:
+To assemble a complete exam suite, pass your configuration file to the `build` command.
 
 ```bash
-# Create a single, print-ready PDF for a specific version (e.g., EE1-01)
-make exams/EE1-01-student.pdf
-
-# Create one large PDF containing all student-ready versions of the EE1 exam
-make exams/EE1-allstudents.pdf
-
-# Create a PDF containing just the answer sheets for grading for all versions of the EE1 exam
-make exams/EE1-answersheets.pdf
+cabal run examforge -- build configs/EE1.yml
 ```
 
-These targets are implemented in the Makefile using `qpdf`, `pdfunite`, and helper scripts under `scripts/`.
+This will process all linked question banks and generate:
 
----
+* LaTeX exam files: `exams/EE1-01.tex`, `exams/EE1-02.tex`, …
+* CSV key: `exams/EE1.keys.csv`
 
-## Direct CLI usage (advanced)
+You can then compile the PDFs using `make exams/EE1-01.pdf` or manually via `latexmk`.
 
-If you prefer not to use the `Makefile`, you can invoke the tools directly.
+### 3. Generating Mock Data (`mock`)
+
+If you are modifying ExamForge's selection algorithms or developing new constraint features, you can use the `mock` command to generate large synthetic datasets to stress-test the Semantic Group Rotation algorithm.
 
 ```bash
-# 1. Generate the Haskell question pool module from a config
-cabal run examforge -- configs/EE1.yml
-
-# 2. Assemble exams (`.tex` and `.csv`) for the same config (requires the generated module)
-cabal run exam-assembler -- configs/EE1.yml
+cabal run examforge -- mock \
+  --bank-out questions/mock-bank.yml \
+  --config-out configs/mock-config.yml \
+  --num-questions 200 \
+  --num-groups 30 \
+  --versions 15 \
+  --max-per-group 2
 ```
 
-This will:
-
-* Create `generated/Generated/Questions.hs`
-* Generate `exams/EE1-01.tex`, `exams/EE1-02.tex`, … according to `assembly_options.versions`
-* Generate `exams/EE1.keys.csv` with the correct options for each version
-
-You can then run `latexmk -lualatex exams/EE1-01.tex` manually on the `.tex` files if desired.
+**Mock Options:**
+| Flag | Short | Description | Default |
+| --- | --- | --- | --- |
+| `--bank-out` |  | **(Required)** Output path for the generated question bank YAML. |  |
+| `--config-out` |  | **(Required)** Output path for the generated exam config YAML. |  |
+| `--num-questions` | `-q` | Total number of questions to generate in the bank. | |
+| `--num-groups` | `-g` | Total number of available semantic group tags in the universe. | |
+| `--versions` | `-v` | Number of exam variations to specify in the generated config. | |
+| `--group-prefix` | `-p` | Prefix for semantic group tags. | `grupo-` |
+| `--max-per-group` | `-m` | Maximum questions allowed per semantic group per variant. | `1` |
+| `--seed` | `-s` | Random seed for deterministic generation. | `42` |
 
 ---
 
@@ -200,23 +315,7 @@ You can then run `latexmk -lualatex exams/EE1-01.tex` manually on the `.tex` fil
 
 ExamForge uses **two types of YAML files**:
 
-1. **[Exam Configuration Files](SPECIFICATION.md#1-exam-configuration-file)**
-   High-level files describing the exam: metadata, question banks, assembly options, selection rules, and extra content.
+1. **Exam Configuration Files:** High-level files describing the exam (metadata, question banks, assembly options, evaluator overrides, selection rules, etc.).
+2. **Question Template Files:** Question-level definitions (IDs, tags, format, language, parameters, text, and answers).
 
-2. **[Question Template Files](SPECIFICATION.md#2-question-template-file)**
-   Question-level definitions: question IDs, text, parameters, tags, and answers.
-
-The YAML format is defined normatively in [`SPECIFICATION.md`](SPECIFICATION.md).
-That document is the authoritative reference for configuration and question templates.
-
----
-
-## Development & Testing
-
-If you are modifying ExamForge's selection algorithms or developing new constraint features, you can use the bundled mock generator to create large synthetic datasets:
-
-```bash
-cabal run examforge-mockgen -- --help
-```
-
-For more details on generating load-test data, see [`MOCKGEN.md`](https://www.google.com/search?q=MOCKGEN.md).
+The YAML format is defined normatively in [`SPECIFICATION.md`](SPECIFICATION.md). That document is the authoritative reference for exam configuration and question templates.

@@ -1,88 +1,74 @@
-cabal-version:      2.4
+cabal-version:      3.0
 name:               ExamForge
 version:            0.1.0.0
-
--- A short, one-line synopsis of the package.
 synopsis:           A template-based, algorithmic exam question generator.
+description:
+  ExamForge is a polyglot exam generation system. It separates the
+  declarative structure of an exam (metadata, selection constraints,
+  semantic grouping) from the computational logic of its
+  questions. Instructors define parameterized question templates in YAML,
+  writing native mathematical computations and string interpolations in
+  Python, C, C++, or Haskell. ExamForge orchestrates these scripts securely,
+  applies advanced rotation algorithms to ensure fair test variants, and
+  outputs fully typeset LaTeX exams and automated grading keys.
 
--- A longer description of the package.
--- description:
-
--- The license under which the package is released.
 license:            MIT
 license-file:       LICENSE
-
--- The package author(s).
-author:             José Romildo
-maintainer:         José Romildo
-
--- A copyright notice.
--- copyright:
+author:             José Romildo Malaquias
+maintainer:         malaquias@ufop.edu.br
 category:           Education, Text Processing
 build-type:         Simple
-extra-source-files: README.md
+extra-doc-files:
+    README.md
+    SPECIFICATION.md
+    ChangeLog.md
 
--- A public GitHub repository for the project.
 source-repository head
   type:     git
   location: https://github.com/romildo/ExamForge
 
---------------------------------------------------------------------------------
--- Library Stanza
--- This section defines the core library of our project, where our main
--- logic will reside. The executable will depend on this library.
---------------------------------------------------------------------------------
 library
-  -- Modules exported by the library.
   exposed-modules:
-      ExamForge.Type
-    , ExamForge.Parser
-    , ExamForge.Exam
-    , ExamForge.Generator
-    , ExamForge.Formatter.Latex
-    , ExamForge.ExamConfig
-    -- , ExamForge.Jupyter.Client
+    ExamForge.Assembler
+    ExamForge.Evaluator.C
+    ExamForge.Evaluator.Class
+    ExamForge.Evaluator.Cpp
+    ExamForge.Evaluator.Haskell
+    ExamForge.Evaluator.Python
+    ExamForge.Exam
+    ExamForge.ExamConfig
+    ExamForge.Formatter.Latex
+    ExamForge.IR
+    ExamForge.Mock
+    ExamForge.Orchestrator
+    ExamForge.QuestionBank
+    ExamForge.Template
 
-  -- Modules included in this library but not exported.
-  -- other-modules:
-
-  -- LANGUAGE extensions used by modules in this package.
-  -- other-extensions:
-
-  -- The packages this library depends on.
   build-depends:
-      base >=4.12 && <5
-    , yaml
+    , base >=4.12 && <5
+    , Glob
     , aeson
+    , bytestring
+    , containers
     , directory
     , filepath
-    , random
-    , Glob
-    , bytestring
-    , zeromq4-haskell
-    , uuid
-    , cryptonite
-    , memory
-    , process
-    , text
-    , containers
+    , optparse-applicative
     , pretty-show
+    , pretty-simple
+    , process
+    , random
+    , regex-tdfa
+    , temporary
+    , text
+    , yaml
 
-  -- Directories containing source files.
   hs-source-dirs:   src
 
-  -- Base language which the package is written in.
   default-language: Haskell2010
 
---------------------------------------------------------------------------------
--- Executable Stanza
--- This defines the main executable program that users will run.
---------------------------------------------------------------------------------
 executable examforge
-  -- The name of the main module.
-  main-is:          Forge.hs
+  main-is:          ExamForge.hs
 
-  -- The packages this executable depends on.
   build-depends:
     base >=4.12 && <5,
     ExamForge,
@@ -91,65 +77,12 @@ executable examforge
     directory,
     filepath,
     aeson,
-    pretty-show
-
-  -- Directories containing source files.
-  hs-source-dirs:   app
-
-  -- Base language which the package is written in.
-  default-language: Haskell2010
-
---------------------------------------------------------------------------------
--- Executable Stanza: Exam Assembler
--- This program USES the generated modules to build final exams.
---------------------------------------------------------------------------------
-executable exam-assembler
-  main-is:          Assemble.hs
-  other-modules:    Generated.Questions
-
-  build-depends:
-    base >=4.12 && <5,
-    ExamForge,
-    random,
-    regex-tdfa,
-    directory,
-    filepath,
-    containers,
     pretty-show,
-    pretty-simple
+    pretty-simple,
+    optparse-applicative,
+    containers,
+    text
 
-  hs-source-dirs:
-    app,
-    generated
-
-  default-language: Haskell2010
-
---------------------------------------------------------------------------------
--- Executable Stanza: MockGen
--- This program generate a question bank and an exam configuration for testing purposes
---------------------------------------------------------------------------------
-
-executable examforge-mockgen
-  main-is:          MockGen.hs
   hs-source-dirs:   app
-  default-language: Haskell2010
-  ghc-options:      -Wall -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      base >= 4.14 && < 5
-    , aeson
-    , yaml
-    , random
-    , optparse-applicative
 
--- --------------------------------------------------------------------------------
--- -- Executable Stanza: Jupyter Proof of Concept
--- -- This program is a minimal, standalone Haskell program that acts as a Jupyter client
--- --------------------------------------------------------------------------------
--- executable jupyter-poc
---     main-is:          Poc.hs
---     hs-source-dirs:   app
---     build-depends:    base >=4.12 && <5
---                     , ExamForge
---                     , zeromq4-haskell
---                     , pretty-show
---     default-language: Haskell2010
+  default-language: Haskell2010
