@@ -1,6 +1,5 @@
 -- File: src/ExamForge/ExamConfig.hs
 
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module ExamForge.ExamConfig
@@ -11,11 +10,9 @@ module ExamForge.ExamConfig
   , Selection(..)
   , EvaluatorConfig(..)
   , Content(..)
-  , loadConfig
   ) where
 
-import Data.Yaml
-import GHC.Generics
+import Data.Aeson
 import Control.Monad (when)
 import qualified Data.Map as Map
 
@@ -26,9 +23,15 @@ data Header = Header
   , professor :: String
   , semester :: String
   , title :: String
-  } deriving (Show, Generic)
+  } deriving (Show)
 
-instance FromJSON Header
+instance FromJSON Header where
+  parseJSON = withObject "Header" $ \v -> Header
+    <$> v .: "institution"
+    <*> v .: "course"
+    <*> v .: "professor"
+    <*> v .: "semester"
+    <*> v .: "title"
 
 -- | Corresponds to the 'assembly_options' section.
 data AssemblyOptions = AssemblyOptions
@@ -39,7 +42,7 @@ data AssemblyOptions = AssemblyOptions
   , shuffle_questions   :: Bool
   , seed                :: Maybe Int -- Optional random seed
   , registration_digits :: Maybe Int -- Optional field for OMR grid
-  } deriving (Show, Generic)
+  } deriving (Show)
 
 -- | Default values for AssemblyOptions.
 defaultAssemblyOptions :: AssemblyOptions
@@ -67,7 +70,7 @@ instance FromJSON AssemblyOptions where
 data SemanticGroupRule = SemanticGroupRule
   { tag_pattern :: String
   , maximum_qs :: Int
-  } deriving (Show, Generic)
+  } deriving (Show)
 
 instance FromJSON SemanticGroupRule where
   parseJSON = withObject "SemanticGroupRule" $ \v -> do
@@ -81,7 +84,7 @@ data Selection = Selection
   { include_tags :: [String]
   , exclude_tags :: [String]
   , semantic_groups :: [SemanticGroupRule]
-  } deriving (Show, Generic)
+  } deriving (Show)
 
 defaultSelection :: Selection
 defaultSelection = Selection [] [] []
@@ -96,7 +99,7 @@ instance FromJSON Selection where
 data Content = Content
   { instructions   :: String
   , latex_preamble :: String  -- Código a ser injetado no preâmbulo
-  } deriving (Show, Generic)
+  } deriving (Show)
 
 -- | Default values for Content.
 defaultContent :: Content
@@ -143,7 +146,3 @@ instance FromJSON ExamConfig where
     <*> v .:? "assembly_options" .!= defaultAssemblyOptions
     <*> v .:? "selection"        .!= defaultSelection
     <*> v .:? "content"          .!= defaultContent
-    
--- | Loads and parses an exam configuration file.
-loadConfig :: FilePath -> IO (Either ParseException ExamConfig)
-loadConfig = decodeFileEither

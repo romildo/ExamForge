@@ -1,3 +1,5 @@
+-- File: src/ExamForge/QuestionBank.hs
+
 {-# LANGUAGE OverloadedStrings #-}
 
 module ExamForge.QuestionBank 
@@ -6,11 +8,9 @@ module ExamForge.QuestionBank
   , Delimiters(..)
   , ParameterBlock(..)
   , Answer(..)
-  , loadQuestionBank
   ) where
 
 import Data.Aeson
-import Data.Yaml (decodeFileThrow)
 import Data.Map (Map)
 import qualified Data.Map as Map
 
@@ -89,10 +89,3 @@ instance FromJSON QuestionTemplate where
     <*> v .:  "question"
     <*> v .:  "answers"
     <*> v .:? "delimiters"
-
--- | Replaces your old ExamForge.Parser logic
-loadQuestionBank :: FilePath -> IO [QuestionTemplate]
-loadQuestionBank filepath = do
-  -- decodeFileThrow automatically handles YAML parsing and throws helpful 
-  -- exceptions if the file is missing or the schema is wrong.
-  decodeFileThrow filepath
