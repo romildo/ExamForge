@@ -12,9 +12,9 @@ import qualified Data.Text as T
 data TemplateNode
   = Literal String
   -- ^ Pure static text (e.g., "O paciente ")
-  | Variable String (Maybe String)
-  -- ^ An interpolated variable with its name and an optional native format hint.
-  -- Example: Variable "nome" (Just "%s")
+  | Expression String (Maybe String)
+  -- ^ An interpolated expression with its text and an optional native format hint.
+  -- Example: Expression "2*width" (Just "%.2f")
   deriving (Show, Eq)
 
 -- | Represents a parsed answer choice.
@@ -43,15 +43,15 @@ parseTemplate (startDelim, endDelim) template =
                     (expression, after) = T.breakOn end s'
                     
                     -- Split the inner expression by ":" to find the format hint
-                    (varNameText, fmtPart) = T.breakOn ":" expression
-                    varName = T.unpack varNameText
+                    (expText, fmtPart) = T.breakOn ":" expression
+                    exp = T.unpack expText
                     
                     -- If there's no ":", fmtPart is empty. 
                     -- If there is a ":", T.drop 1 removes the ":" itself.
-                    varNode = if T.null fmtPart
-                              then Variable varName Nothing
-                              else Variable varName (Just (T.unpack (T.drop 1 fmtPart)))
+                    expNode = if T.null fmtPart
+                              then Expression exp Nothing
+                              else Expression exp (Just (T.unpack (T.drop 1 fmtPart)))
                               
-                in staticList ++ [varNode] ++ go (T.drop (T.length end) after)
+                in staticList ++ [expNode] ++ go (T.drop (T.length end) after)
   in
     go (T.pack template)

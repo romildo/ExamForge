@@ -92,8 +92,8 @@ buildPythonString [] = "\"\""
 buildPythonString nodes = intercalate " + " (map nodeToPython nodes)
   where
     nodeToPython (Literal text) = safePyString text
-    nodeToPython (Variable name Nothing)    = "f\"{" ++ name ++ "}\""
-    nodeToPython (Variable name (Just fmt)) = "f\"{" ++ name ++ ":" ++ fmt ++ "}\""
+    nodeToPython (Expression code Nothing)    = "f\"{" ++ code ++ "}\""
+    nodeToPython (Expression code (Just fmt)) = "f\"{" ++ code ++ ":" ++ fmt ++ "}\""
 
 buildAnswerString :: AnswerAST -> String
 buildAnswerString (AnswerAST isCorr nodes) =

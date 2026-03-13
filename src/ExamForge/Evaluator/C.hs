@@ -29,8 +29,8 @@ instance Evaluator CEval where
       -- Map AST to printf statements
       printAST nodes = unlines $ map nodeToC nodes
       nodeToC (Literal text) = "    printf(\"%s\", \"" ++ escapeJSONForC text ++ "\");"
-      nodeToC (Variable name Nothing) = "    printf(\"%d\", " ++ name ++ ");" -- fallback
-      nodeToC (Variable name (Just fmt)) = "    printf(\"" ++ fmt ++ "\", " ++ name ++ ");"
+      nodeToC (Expression code Nothing) = "    printf(\"%d\", " ++ code ++ ");" -- fallback
+      nodeToC (Expression code (Just fmt)) = "    printf(\"" ++ fmt ++ "\", " ++ code ++ ");"
 
       buildAnswers = unlines $ zipWith buildAns aNodes [1..length aNodes]
       buildAns (AnswerAST isCorr nodes) idx =

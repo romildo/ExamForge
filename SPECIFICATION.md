@@ -468,7 +468,7 @@ Each object describes one logical question, possibly parameterized into multiple
 
   is interpreted as a Haskell expression in scope of the current parameters and computations, and its rendered value is substituted into the text.
 
-  **The Native Format Rule (New in v4.0):** Variables inside delimiters can optionally include a format specifier separated by a colon. **The specifier must be written in the native syntax of the target language.** ExamForge extracts this hint to generate native interpolation code (e.g., `f"{var:.2f}"` for Python, or `printf("%.2f", var)` for C).  
+  **The Native Format Rule (New in v4.0):** Expressions inside delimiters can optionally include a format specifier separated by a colon. **The specifier must be written in the native syntax of the target language.** ExamForge extracts this hint to generate native interpolation code (e.g., `f"{var:.2f}"` for Python, or `printf("%.2f", var)` for C).  
   Example:
   ```yaml
   # For Python:

@@ -30,10 +30,10 @@ instance Evaluator CppEval where
       nodeToCpp (Literal text) = "    std::cout << \"" ++ escapeJSONForCpp text ++ "\";"
       
       -- Native C++ streams handle std::string, floats, and ints automatically!
-      nodeToCpp (Variable name Nothing) = "    std::cout << " ++ name ++ ";"
+      nodeToCpp (Expression code Nothing) = "    std::cout << (" ++ code ++ ");"
       
       -- If the user provides a format hint, we fall back to printf
-      nodeToCpp (Variable name (Just fmt)) = "    printf(\"" ++ fmt ++ "\", " ++ name ++ ");"
+      nodeToCpp (Expression code (Just fmt)) = "    printf(\"" ++ fmt ++ "\", " ++ code ++ ");"
 
       buildAnswers = unlines $ zipWith buildAns aNodes [1..length aNodes]
       buildAns (AnswerAST isCorr nodes) idx =
