@@ -43,7 +43,7 @@ instance Evaluator HaskellEval where
 
       -- Generates an inline block for a specific row to leverage GHC type inference
       generateRow row idx =
-        let isLast = idx == length rows
+        let isLast = null rows || idx == length rows
             -- Indent bindings by 8 spaces to align under the 'let'
             bindings = map (\k -> "        " ++ k ++ " = " ++ M.findWithDefault "undefined" k row) paramNames
             letBlock = if null bindings 
