@@ -14,8 +14,9 @@ import Text.Pretty.Simple (pShow)
 import Text.Pretty.Simple (pShow)
 import Data.Text.Lazy (unpack)
 import System.IO (hSetEncoding, stdout, stderr, utf8)
-import Data.Aeson (FromJSON)
+import Data.Aeson (FromJSON, ToJSON, encode)
 import Data.Yaml (decodeFileEither, ParseException(..), YamlException(..), YamlMark(..))
+import qualified Data.ByteString.Lazy.Char8 as BSL
 
 import ExamForge.ExamConfig (ExamConfig(..), EvaluatorConfig(..))
 import ExamForge.QuestionBank (QuestionTemplate(..), Answer(..), Delimiters(..))
@@ -56,6 +57,7 @@ data CheckOpts = CheckOpts
   , checkConfigFile :: Maybe FilePath
   , checkQuestionId :: Maybe String
   , checkShowScript :: Bool
+  , checkShowJson   :: Bool
   }
 
 -- | 3. CLI Parsers
@@ -67,7 +69,8 @@ checkParser = Check <$> (CheckOpts
   <$> strArgument (metavar "BANK_FILE" <> help "Path to the question bank YAML")
   <*> optional (strOption (long "config" <> short 'c' <> metavar "CONFIG_FILE" <> help "Optional exam config override"))
   <*> optional (strOption (long "id" <> short 'i' <> metavar "QUESTION_ID" <> help "Only check a specific question ID"))
-  <*> switch (long "show-script" <> short 's' <> help "Output the generated script instead of evaluating it"))
+  <*> switch (long "show-script" <> short 's' <> help "Output the generated script instead of evaluating it")
+  <*> switch (long "show-json" <> short 'j' <> help "Output the evaluated JSON IR"))
 
 commandParser :: Parser Command
 commandParser = subparser
@@ -175,10 +178,14 @@ runCheck opts = do
     else do
       putStrLn $ "Found " ++ show (length targetTemplates) ++ " matching templates. Evaluating...\n"
       evalResults <- mapM (processTemplate defaultEvaluators "python") targetTemplates
-      
+
       mapM_ (\res -> case res of
                 Left err -> putStrLn $ "[ERROR]\n" ++ err
-                Right q  -> putStrLn $ "[SUCCESS]\n" ++ unpack (pShow q)
+                Right q  -> do
+                    putStrLn "[SUCCESS]"
+                    if checkShowJson opts
+                      then BSL.putStrLn (encode q)
+                      else putStrLn $ unpack (pShow q)
             ) evalResults
 
 -- | Load a YAML file and handle parse errors with the file name

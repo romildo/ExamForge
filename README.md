@@ -248,7 +248,6 @@ content:
 
 ---
 
-
 ## Command-Line Usage
 
 The `examforge` CLI provides three main subcommands: `check`, `build`, and `mock`.
@@ -264,8 +263,11 @@ cabal run examforge -- check questions/my-bank.yml
 # Evaluate a specific question by ID
 cabal run examforge -- check questions/my-bank.yml --id py-math-01
 
-# Debugging: Dump the generated source code (Python, C, etc.) to the terminal without running it
+# Debugging: Dump the generated source code (Python, C, Haskell, etc.) to the terminal without running it
 cabal run examforge -- check questions/my-bank.yml -i py-math-01 --show-script
+
+# Debugging: Output the evaluated JSON Intermediate Representation (IR) bridging the script and Haskell AST
+cabal run examforge -- check questions/my-bank.yml -i py-math-01 --show-json
 ```
 
 ### 2. Assembling Exams (`build`)

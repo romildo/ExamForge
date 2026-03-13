@@ -70,18 +70,19 @@ executable examforge
   main-is:          ExamForge.hs
 
   build-depends:
-    base >=4.12 && <5,
-    ExamForge,
-    Glob,
-    yaml,
-    directory,
-    filepath,
-    aeson,
-    pretty-show,
-    pretty-simple,
-    optparse-applicative,
-    containers,
-    text
+    , base >=4.12 && <5
+    , ExamForge
+    , Glob
+    , yaml
+    , directory
+    , filepath
+    , aeson
+    , pretty-show
+    , pretty-simple
+    , optparse-applicative
+    , containers
+    , text
+    , bytestring
 
   hs-source-dirs:   app
 

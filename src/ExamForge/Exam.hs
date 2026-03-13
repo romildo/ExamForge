@@ -1,4 +1,12 @@
+-- File: src/ExamForge/Exam.hs
+
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
+
 module ExamForge.Exam where
+
+import Data.Aeson (ToJSON)
+import GHC.Generics (Generic)
 
 import ExamForge.QuestionBank (SelectionType)
 
@@ -17,4 +25,4 @@ data Question = Question
   , qTags          :: [String]
   , qSelectionType :: SelectionType
   , qVariants      :: [Variant]
-  } deriving (Show, Eq, Ord)
+  } deriving (Show, Eq, Ord, Generic, ToJSON)
