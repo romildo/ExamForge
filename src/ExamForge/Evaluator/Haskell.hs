@@ -24,8 +24,8 @@ instance Evaluator HaskellEval where
 
       printAST nodes = unlines $ map nodeToHs nodes
       nodeToHs (Literal text) = "      putStr \"" ++ escapeHsJSONString text ++ "\""
-      nodeToHs (Variable name Nothing) = "      putStr (show " ++ name ++ ")"
-      nodeToHs (Variable name (Just fmt)) = "      printf \"" ++ fmt ++ "\" " ++ name
+      nodeToHs (Expression code Nothing) = "      putStr (show (" ++ code ++ "))"
+      nodeToHs (Expression code (Just fmt)) = "      printf \"" ++ fmt ++ "\" (" ++ code ++ ")"
 
       buildAnswers = unlines $ zipWith buildAns aNodes [1..length aNodes]
       buildAns (AnswerAST isCorr nodes) idx =
