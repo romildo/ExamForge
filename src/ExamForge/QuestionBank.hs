@@ -1,6 +1,8 @@
 -- File: src/ExamForge/QuestionBank.hs
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 module ExamForge.QuestionBank 
   ( QuestionTemplate(..)
@@ -13,10 +15,11 @@ module ExamForge.QuestionBank
 import Data.Aeson
 import Data.Map (Map)
 import qualified Data.Map as Map
+import GHC.Generics (Generic)
 
 -- | Defines how correctness is evaluated.
 data SelectionType = SelectAny | SelectAll
-  deriving (Show, Eq, Ord)
+  deriving (Show, Eq, Ord, Generic, ToJSON)
 
 instance FromJSON SelectionType where
   parseJSON = withText "SelectionType" $ \t ->
@@ -29,7 +32,7 @@ instance FromJSON SelectionType where
 data Delimiters = Delimiters
   { startDelim :: String
   , endDelim   :: String
-  } deriving (Show, Eq, Ord)
+  } deriving (Show, Eq, Ord, Generic, ToJSON)
 
 instance FromJSON Delimiters where
   parseJSON = withObject "Delimiters" $ \v -> Delimiters
@@ -40,7 +43,7 @@ instance FromJSON Delimiters where
 data ParameterBlock = ParameterBlock
   { paramTypes :: Map String String
   , paramRows  :: [Map String String]
-  } deriving (Show, Eq, Ord)
+  } deriving (Show, Eq, Ord, Generic, ToJSON)
 
 instance FromJSON ParameterBlock where
   parseJSON = withObject "ParameterBlock" $ \v -> ParameterBlock
@@ -51,7 +54,7 @@ instance FromJSON ParameterBlock where
 data Answer
   = CorrectAnswer String
   | IncorrectAnswer String
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic, ToJSON)
 
 instance FromJSON Answer where
   parseJSON = withObject "Answer" $ \v -> do
@@ -73,7 +76,7 @@ data QuestionTemplate = QuestionTemplate
   , qtQuestion    :: String
   , qtAnswers     :: [Answer]
   , qtDelimiters  :: Maybe Delimiters
-  } deriving (Show, Eq)
+  } deriving (Show, Eq, Generic, ToJSON)
 
 instance FromJSON QuestionTemplate where
   parseJSON = withObject "QuestionTemplate" $ \v -> QuestionTemplate
