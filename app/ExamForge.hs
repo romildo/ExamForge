@@ -7,15 +7,18 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
 import Control.Monad (forM)
+import Control.Exception (throwIO)
 import System.Exit (die)
 import System.FilePath (takeBaseName)
 import Text.Pretty.Simple (pShow)
 import Text.Pretty.Simple (pShow)
 import Data.Text.Lazy (unpack)
 import System.IO (hSetEncoding, stdout, stderr, utf8)
+import Data.Aeson (FromJSON)
+import Data.Yaml (decodeFileEither, ParseException(..), YamlException(..), YamlMark(..))
 
-import ExamForge.ExamConfig (ExamConfig(..), EvaluatorConfig(..), loadConfig)
-import ExamForge.QuestionBank (QuestionTemplate(..), Answer(..), Delimiters(..), loadQuestionBank)
+import ExamForge.ExamConfig (ExamConfig(..), EvaluatorConfig(..))
+import ExamForge.QuestionBank (QuestionTemplate(..), Answer(..), Delimiters(..))
 import ExamForge.Template (parseTemplate, AnswerAST(..))
 import ExamForge.Evaluator.Class (generateScript)
 import ExamForge.Evaluator.Python (PythonEval(..))
@@ -109,17 +112,16 @@ processTemplate evaluators defaultLang qt = do
 runBuild :: BuildOpts -> IO ()
 runBuild opts = do
   putStrLn $ "Loading config: " ++ buildConfigFile opts
-  configRes <- loadConfig (buildConfigFile opts)
-  cfg <- case configRes of
-    Left err -> die $ "Config error: " ++ show err
-    Right c  -> return c
+  cfg <- loadYamlOrDie "exam config" (buildConfigFile opts)
 
   let activeEvaluators = Map.union (evaluators cfg) defaultEvaluators
   let defLang = fromMaybe "python" (default_language cfg)
 
   putStrLn "Loading question banks..."
   -- Load all templates from all files (you might need to expand globs here if you use them)
-  allTemplates <- concat <$> mapM loadQuestionBank (question_banks cfg)
+  -- Map the helper over all configured banks and flatten the result
+  nestedTemplates <- mapM (loadYamlOrDie "Question bank") (question_banks cfg)
+  let allTemplates = concat nestedTemplates  
 
   putStrLn $ "Evaluating " ++ show (length allTemplates) ++ " templates..."
   evalResults <- mapM (processTemplate activeEvaluators defLang) allTemplates
@@ -150,7 +152,7 @@ runBuild opts = do
 runCheck :: CheckOpts -> IO ()
 runCheck opts = do
   putStrLn $ "Checking bank: " ++ checkBankFile opts
-  templates <- loadQuestionBank (checkBankFile opts)
+  templates <- loadYamlOrDie "question bank" (checkBankFile opts)
   
   -- Filter by ID if requested
   let targetTemplates = case checkQuestionId opts of
@@ -178,6 +180,22 @@ runCheck opts = do
                 Left err -> putStrLn $ "[ERROR]\n" ++ err
                 Right q  -> putStrLn $ "[SUCCESS]\n" ++ unpack (pShow q)
             ) evalResults
+
+-- | Load a YAML file and handle parse errors with the file name
+loadYamlOrDie :: FromJSON a => String -> FilePath -> IO a
+loadYamlOrDie description filepath = do
+  res <- decodeFileEither filepath
+  case res of
+    Right result -> return result
+    Left err -> case err of
+      InvalidYaml (Just (YamlParseException {yamlProblemMark=mark, yamlProblem=problem, yamlContext=context})) ->
+        die $ "YAML parse exception at " ++
+                   filepath ++ 
+                   ":" ++ show (yamlLine mark + 1) ++
+                   ":" ++ show (yamlColumn mark + 1) ++ 
+                   "\n" ++ context ++ ":" ++
+                   "\n" ++ problem
+      _ -> throwIO err
 
 main :: IO ()
 main = do
