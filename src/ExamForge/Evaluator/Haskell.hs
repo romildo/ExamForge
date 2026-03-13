@@ -24,9 +24,10 @@ instance Evaluator HaskellEval where
 
       printAST nodes = unlines $ map nodeToHs nodes
       nodeToHs (Literal text) = "      putStr \"" ++ escapeHsJSONString text ++ "\""
-      nodeToHs (Expression code Nothing) = "      putStr (show (" ++ code ++ "))"
-      nodeToHs (Expression code (Just fmt)) = "      printf \"" ++ fmt ++ "\" (" ++ code ++ ")"
-
+      -- Pipe evaluated expressions through a runtime JSON escaper
+      nodeToHs (Expression code Nothing) = "      putStr (escapeJSON (show (" ++ code ++ ")))"
+      -- Force printf to resolve to a String, escape it, then print it
+      nodeToHs (Expression code (Just fmt)) = "      putStr (escapeJSON (printf \"" ++ fmt ++ "\" (" ++ code ++ ") :: String))"
       buildAnswers = unlines $ zipWith buildAns aNodes [1..length aNodes]
       buildAns (AnswerAST isCorr nodes) idx =
         let isLastAns = idx == length aNodes
@@ -78,6 +79,17 @@ instance Evaluator HaskellEval where
       , if null rows then generateRow M.empty 1 else unlines (zipWith generateRow rows [1..length rows])
       , "  putStrLn \"  ]\""
       , "  putStrLn \"}\""
+      , ""
+      , "-- Runtime JSON escaper for interpolated expressions"
+      , "escapeJSON :: String -> String"
+      , "escapeJSON = concatMap escapeChar"
+      , "  where"
+      , "    escapeChar '\\\"' = \"\\\\\\\"\""
+      , "    escapeChar '\\\\' = \"\\\\\\\\\""
+      , "    escapeChar '\\n' = \"\\\\n\""
+      , "    escapeChar '\\r' = \"\""
+      , "    escapeChar '\\t' = \"\\\\t\""
+      , "    escapeChar c    = [c]"
       ]
 
 escapeHsJSONString :: String -> String
