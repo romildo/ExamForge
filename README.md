@@ -313,6 +313,51 @@ cabal run examforge -- mock \
 
 ---
 
+## Best Practices for Authoring Question Templates (v4.0+)
+
+With the introduction of the Polyglot architecture and the Expression AST, ExamForge v4.0 shifts the heavy lifting from manual string parsing to native language evaluation. Follow these guidelines to create robust, maintainable, and pedagogically effective parameterized questions.
+
+### 1. Let the Engine Do the Math (Avoid `computations`)
+
+In older versions, complex logic and formatting required a `computations` block to simulate execution (e.g., `correct = x * 2 + y`). In v4.0, **parameters are evaluated as native code**.
+
+* **Do:** Write mathematical expressions or native language logic directly into the YAML `rows` or answer blocks (e.g., `{{x * 2 + y}}`).
+* **Don't:** Re-implement language features (like parsing strings into lists or simulating operator precedence) inside a `computations` script.
+
+### 2. Code Cognitive Distractors, Not Hardcoded Strings
+
+Instead of trying to manually calculate every possible student mistake and typing it out as a string, let the engine calculate the mistake dynamically.
+
+* **Do:** Write the *flawed logic* into the parameter. If a student might forget `flip` in a `map`, write the distractor as `{{map (n ^) lista}}`.
+* **Don't:** Hardcode the resulting array like `wrongAnswer: "[2, 4, 8]"`. Coding the logic ensures your distractors scale perfectly if you change the base parameters later.
+
+### 3. Design Row-Specific Distractors over "Meta" Answers
+
+Generic distractors like *"Resulta em erro de tipo"* or *"O valor original"* are dangerous if they accidentally become true for a randomly generated variant.
+
+* **Do:** Define highly targeted, row-specific distractors (`w1`, `w2`, `w3`) in your parameter `rows`. If the variant tests `round 2.5`, the distractor should explicitly offer `3` to catch students unaware of Banker's Rounding.
+* **Don't:** Rely purely on static text answers unless testing a universal syntax or compilation rule (e.g., *"A pattern match fails"*).
+
+### 4. Use the Native Format Hint (`%s`) for Clean Injection
+
+When passing string representations of code to print in the question prompt, you must prevent the engine from rendering the JSON string quotes.
+
+* **Do:** Use the `%s` format hint (e.g., `{{exprStr:%s}}`) to cleanly inject strings into LaTeX `minted` or `haskellinline` blocks.
+* **Don't:** Rely on custom delimiters or complex escape characters to strip quotes.
+
+### 5. Embrace Heterogeneous Distractor Types
+
+Because the v4.0 engine evaluates each interpolation independently in isolated scopes, your distractors do not need to share the same data type.
+
+* **Do:** Mix types to bait specific misconceptions. If the correct answer is a character (`'B'`), it is perfectly safe (and highly encouraged) to make a distractor a string (`"B"`) or a list (`['B']`). The engine's implicit `show` will format them correctly without crashing.
+
+### 6. Standardize Delimiters
+
+* **Do:** Stick to the engine's default `{{ }}` delimiters.
+* **Don't:** Override delimiters (e.g., `<$ $>`, `[[ ]]`, or `| |`) unless absolutely necessary to avoid conflicts with the target language's syntax.
+
+---
+
 ## YAML Specification
 
 ExamForge uses **two types of YAML files**:
